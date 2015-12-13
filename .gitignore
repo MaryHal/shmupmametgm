@@ -2,3 +2,5 @@ mametgm64
 *.exe
 
 /obj/
+/fumen/2015-12-12/19:16:25-Lvl0.txt
+*.txt

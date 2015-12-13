@@ -1,0 +1,12 @@
+* shmupmametgm
+#+BEGIN_QUOTE
+This is a modified version of MAME with modifications in Psikyo SH-2 emulation (tgm2, tgm2p) that eliminate one extra frame of lag compared to vanilla MAME.
+#+END_QUOTE
+
+This version correctly configures MAME to use 4-way stick emulation for tgm2p and also backports a framerate fix so tgm2p should run at the correct ~61.681 fps.
+
+** Building
+
+#+BEGIN_SRC sh
+make SUBTARGET=tgm NOWERROR=1
+#+END_SRC

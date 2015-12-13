@@ -107,6 +107,7 @@ struct _device_info
 	char	*			name;
 
 	// MAME information
+    running_machine *       machine;
 	input_device *			device;
 
 	// device state
@@ -181,7 +182,7 @@ static void device_list_reset_devices(device_info *devlist_head);
 static void device_list_free_devices(device_info **devlist_head);
 
 // generic device management
-static device_info *generic_device_alloc(device_info **devlist_head_ptr, const char *name);
+static device_info *generic_device_alloc(running_machine *machine, device_info **devlist_head_ptr, const char *name);
 static void generic_device_free(device_info *devinfo);
 static int generic_device_index(device_info *devlist_head, device_info *devinfo);
 static void generic_device_reset(device_info *devinfo);
@@ -658,14 +659,14 @@ static device_info *devmap_class_register(running_machine *machine, device_map_t
 		if (devmap->initialized)
 		{
 			sprintf(tempname, "NC%d", index);
-			devinfo = generic_device_alloc(devlist, tempname);
+			devinfo = generic_device_alloc(machine, devlist, tempname);
 			devinfo->device = input_device_add(machine, devclass, devinfo->name, devinfo);
 		}
 		return NULL;
 	}
 	else
 	{
-		devinfo = generic_device_alloc(devlist, devmap->map[index].name);
+		devinfo = generic_device_alloc(machine, devlist, devmap->map[index].name);
 		devinfo->device = input_device_add(machine, devclass, devinfo->name, devinfo);
 	}
 	return devinfo;
@@ -850,7 +851,7 @@ static void sdlinput_register_mice(running_machine *machine)
 	mouse_map.logical[0] = 0;
 
 	// SDL 1.2 has only 1 mouse - 1.3+ will also change that, so revisit this then
-	devinfo = generic_device_alloc(&mouse_list, "System mouse");
+	devinfo = generic_device_alloc(machine, &mouse_list, "System mouse");
 	devinfo->device = input_device_add(machine, DEVICE_CLASS_MOUSE, devinfo->name, devinfo);
 
 	mouse_enabled = options_get_bool(mame_options(), OPTION_MOUSE);
@@ -1065,7 +1066,7 @@ static void sdlinput_register_keyboards(running_machine *machine)
 
 	// SDL 1.2 only has 1 keyboard (1.3+ will have multiple, this must be revisited then)
 	// add it now
-	devinfo = generic_device_alloc(&keyboard_list, "System keyboard");
+	devinfo = generic_device_alloc(machine, &keyboard_list, "System keyboard");
 	devinfo->device = input_device_add(machine, DEVICE_CLASS_KEYBOARD, devinfo->name, devinfo);
 
 	// populate it
@@ -1242,6 +1243,14 @@ void sdlinput_process_events_buf(running_machine *machine)
 	}
 }
 
+static osd_ticks_t last_poll;
+
+void poll_if_necessary(running_machine *machine)
+{
+	// make sure we poll at least once every 1/4 second
+	if (osd_ticks() > last_poll + osd_ticks_per_second() / 4)
+		sdlinput_poll(machine);
+}
 
 void sdlinput_poll(running_machine *machine)
 {
@@ -1272,6 +1281,8 @@ void sdlinput_poll(running_machine *machine)
 		osd_lock_release(input_lock);
 		bufp = 0;
 	}
+
+    last_poll = osd_ticks();
 
 	while (TRUE)
 	{
@@ -1741,7 +1752,7 @@ static void device_list_free_devices(device_info **devlist_head)
 //  generic_device_alloc
 //============================================================
 
-static device_info *generic_device_alloc(device_info **devlist_head_ptr, const char *name)
+static device_info *generic_device_alloc(running_machine *machine, device_info **devlist_head_ptr, const char *name)
 {
 	device_info **curdev_ptr;
 	device_info *devinfo;
@@ -1749,6 +1760,7 @@ static device_info *generic_device_alloc(device_info **devlist_head_ptr, const c
 	// allocate memory for the device object
 	devinfo = global_alloc_clear(device_info);
 	devinfo->head = devlist_head_ptr;
+    devinfo->machine = machine;
 
 	// allocate a UTF8 copy of the name
 	devinfo->name = (char *) global_alloc_array(char, strlen(name)+1);
@@ -1856,6 +1868,7 @@ static void generic_device_reset(device_info *devinfo)
 
 static INT32 generic_button_get_state(void *device_internal, void *item_internal)
 {
+    poll_if_necessary(((device_info *) device_internal)->machine);
 	INT32 *itemdata = (INT32 *) item_internal;
 
 	// return the current state
@@ -1869,8 +1882,8 @@ static INT32 generic_button_get_state(void *device_internal, void *item_internal
 
 static INT32 generic_axis_get_state(void *device_internal, void *item_internal)
 {
+    poll_if_necessary(((device_info *) device_internal)->machine);
 	INT32 *axisdata = (INT32 *) item_internal;
-
 	// return the current state
 	return *axisdata;
 }

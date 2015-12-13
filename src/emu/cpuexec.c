@@ -12,6 +12,7 @@
 #include "emu.h"
 #include "profiler.h"
 #include "debugger.h"
+#include "debug/debugcpu.h"
 
 void poll_if_necessary(running_machine *machine);
 void frame_update_callback(running_machine *machine);
@@ -252,12 +253,90 @@ void cpuexec_init(running_machine *machine)
     single timeslice
 -------------------------------------------------*/
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+#include <stdint.h>
+
+const char* sharedMemKey = "tgm2p_data";
+int fd = 0;
+const size_t vSize = sizeof(int32_t) * 13;
+int32_t* addr = NULL;
+
+void cleanupSharedMem()
+{
+    munlock(addr, vSize);
+    munmap(addr, vSize);  /* Unmap the page */
+    close(fd);            /* Close file */
+    shm_unlink(sharedMemKey);      /* Unlink shared-memory object */
+}
+
 void cpuexec_timeslice(running_machine *machine)
 {
 	int call_debugger = ((machine->debug_flags & DEBUG_FLAG_ENABLED) != 0);
 	timer_execution_state *timerexec = timer_get_execution_state(machine);
 	cpuexec_private *global = machine->cpuexec_data;
 	int ran;
+
+	for (running_device *device = machine->devicelist.first(); device != NULL; device = device->next)
+        {
+            if (mame_stricmp(device->tag(), "maincpu") == 0)
+            {
+                if (addr == NULL)
+                {
+                    fd = shm_open(sharedMemKey, O_RDWR | O_CREAT | O_TRUNC, S_IRWXO | S_IRWXG | S_IRWXU);
+
+                    // Stretch our new file to the suggested size.
+                    if (lseek(fd, vSize - 1, SEEK_SET) == -1)
+                    {
+                        perror("Could not stretch file via lseek");
+                    }
+
+                    // In order to change the size of the file, we need to actually write some
+                    // data. In this case, we'll be writing an empty string ('\0').
+                    if (write(fd, "", 1) != 1)
+                    {
+                        perror("Could not write the final byte in file");
+                    }
+
+                    addr = (int32_t*)mmap(NULL, vSize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+                    if (addr == MAP_FAILED)
+                    {
+                        perror("Could not map memory");
+                    }
+
+                    if(mlock(addr, vSize) != 0)
+                    {
+                        perror("mlock failure");
+                    }
+
+                    // Make sure we unmap our shared memory pointer.
+                    atexit(&cleanupSharedMem);
+                }
+
+                const address_space* space = cpu_get_address_space(device, ADDRESS_SPACE_PROGRAM + (0 - EXPSPACE_PROGRAM_LOGICAL));
+
+                addr[0]  = debug_read_byte(space, memory_address_to_byte(space, 0x06064BF5), TRUE); // p1 State
+                addr[1]  = debug_read_word(space, memory_address_to_byte(space, 0x06064BBA), TRUE); // p1 Level
+                addr[2]  = debug_read_word(space, memory_address_to_byte(space, 0x06064BEA), TRUE); // p1 Timer
+                addr[3]  = debug_read_byte(space, memory_address_to_byte(space, 0x06079378), TRUE); // Master-mode internal grade
+                addr[4]  = debug_read_byte(space, memory_address_to_byte(space, 0x06079379), TRUE); // Master-mode internal grade points
+                addr[5]  = debug_read_byte(space, memory_address_to_byte(space, 0x06064BD0), TRUE); // M-Roll flags
+                addr[6]  = debug_read_byte(space, memory_address_to_byte(space, 0x06066845), TRUE); // p1 in-credit-roll
+                addr[7]  = debug_read_byte(space, memory_address_to_byte(space, 0x06064C25), TRUE); // p1 section index
+
+                addr[8]  = debug_read_word(space, memory_address_to_byte(space, 0x06064BF6), TRUE); // Current block
+                addr[9]  = debug_read_word(space, memory_address_to_byte(space, 0x06064BF8), TRUE); // Next block
+                addr[10] = debug_read_word(space, memory_address_to_byte(space, 0x06064BFC), TRUE); // Current block X position
+                addr[11] = debug_read_word(space, memory_address_to_byte(space, 0x06064C00), TRUE); // Current block Y position
+                addr[12] = debug_read_byte(space, memory_address_to_byte(space, 0x06064BFA), TRUE); // Current block rotation state
+
+                break;
+            }
+        }
 
 	/* build the execution list if we don't have one yet */
 	if (global->executelist == NULL)

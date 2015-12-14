@@ -1,16 +1,36 @@
 #ifndef FUMEN_H
 #define FUMEN_H
 
-#include <stdbool.h>
-
+#if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
-
-#include <stdbool.h>
-#include <stdint.h>
+#elif defined(_WIN64) || defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
 
 #include "debug/debugcpu.h"
+
+int createDir(const char* path)
+{
+#if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))
+    struct stat st = {0};
+    if (stat(path, &st) == -1)
+    {
+        return mkdir(path, 0700);
+    }
+    return 0;
+#elif defined(_WIN64) || defined(_WIN32)
+    if (GetFileAttributes(path) != INVALID_FILE_ATTRIBUTES)
+        return NO_ERROR;
+
+    if (CreateDirectory(path, NULL) == 0)
+        return GetLastError();
+
+    return NO_ERROR;
+#endif
+}
 
 enum
 {
@@ -197,16 +217,11 @@ void runTetrominoLogger()
         // since, upon death, TAP clears some data.
         pushState(stateList, &stateListSize, &prevState);
 
-        struct stat st = {0};
+        // Create fumen directory if it doesn't exist.
+        createDir("fumen/");
 
-        // Create autofumen directory if it doesn't exist.
-        if (stat("fumen/", &st) == -1)
-        {
-            mkdir("fumen/", 0700);
-        }
-
-        char directory[80];
-        char timebuf[80];
+        char directory[32];
+        char timebuf[32];
         char filename[80];
 
         // Create a directory for the day if it doesn't already exist.
@@ -214,10 +229,8 @@ void runTetrominoLogger()
         time(&rawTime);
         struct tm* timeInfo = localtime(&rawTime);
         strftime(directory, 80, "fumen/%F", timeInfo);
-        if (stat(directory, &st) == -1)
-        {
-            mkdir(directory, 0700);
-        }
+
+        createDir(directory);
 
         strftime(timebuf, 80, "%H:%M:%S", timeInfo);
         snprintf(filename, 80, "%s/%s-Lvl%d.txt", directory, timebuf, stateList[stateListSize - 1].level);

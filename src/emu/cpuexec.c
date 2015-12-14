@@ -247,7 +247,7 @@ void cpuexec_init(running_machine *machine)
 	assert(min_quantum.seconds == 0);
 	timer_add_scheduling_quantum(machine, min_quantum.attoseconds, attotime_never);
 
-        findAndSetMainCpu(machine);
+        findAddressSpace(machine);
 }
 
 

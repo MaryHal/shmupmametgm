@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+
+<html>
+  <head>
+    <title>Fumen Encoder</title>
+  </head>
+
+  <body>
+    <header>Fumen Encoder</header>
+    <div>
+      <section id="main">
+        <textarea id="pdata-text" rows="20" cols="60"></textarea>
+        <br />
+        <input id="pdata-upload" type="file" name="fumen" />
+        <br />
+        <div id="settings">
+          <label><input type="radio" name="tap-mode" value="master" checked="on"/>Master</label>
+          <label><input type="radio" name="tap-mode" value="death"/>Death</label>
+          <br />
+          <label><input type="checkbox" id="comment-level" value="output-time"/>Encode level</label>
+          <label><input type="checkbox" id="comment-time" value="output-time"/>Encode game time</label>
+        </div>
+        <button id="encode">Encode</button>
+        <br />
+        <ul id="fumen-list"></ul>
+      </section>
+    </div>
+    <script src="fumen_encode.js"></script>
+  </body>
+</html>

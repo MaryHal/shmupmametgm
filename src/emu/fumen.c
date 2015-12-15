@@ -10,6 +10,7 @@
 #endif
 
 #include <stdbool.h>
+#include <stdlib.h>
 
 #include "emu.h"
 #include "debug/debugcpu.h"
@@ -24,13 +25,27 @@ int createDir(const char* path)
     }
     return 0;
 #elif defined(_WIN64) || defined(_WIN32)
-    if (GetFileAttributes(path) != INVALID_FILE_ATTRIBUTES)
-        return NO_ERROR;
+    const WCHAR* wcpath;
+    int nChars = MultiByteToWideChar(CP_ACP, 0, path, -1, NULL, 0);
+    wcpath = (WCHAR*)malloc(sizeof(WCHAR) * nChars);
+    MultiByteToWideChar(CP_ACP, 0, path, -1, (LPWSTR)wcpath, nChars);
 
-    if (CreateDirectory(path, NULL) == 0)
-        return GetLastError();
+    if (GetFileAttributes(wcpath) != INVALID_FILE_ATTRIBUTES)
+    {
+        // Presumably the directory in question already exists.
+        return 0;
+    }
 
-    return NO_ERROR;
+    if (CreateDirectory(wcpath, NULL) == 0)
+    {
+	WCHAR buf[256];
+        FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf, 256, NULL);
+        printf("%ls\n", buf);
+    }
+
+    free((void*)wcpath);
+
+    return 0;
 #endif
 }
 
@@ -242,19 +257,19 @@ void writePlacementLog()
         time_t rawTime;
         time(&rawTime);
         const struct tm* timeInfo = localtime(&rawTime);
-        strftime(directory, 32, "fumen/%F", timeInfo);
+        strftime(directory, 32, "fumen/%Y-%m-%d", timeInfo);
 
         createDir(directory);
 
-        strftime(timebuf, 32, "%H:%M:%S", timeInfo);
-        snprintf(filename, 80, "%s/%s-Lvl%d.txt", directory, timebuf, stateList[stateListSize - 1].level);
-
-        printf("Writing data to %s\n", filename);
+        strftime(timebuf, 32, "%H-%M-%S", timeInfo);
+        snprintf(filename, 80, "%s/%s_Lvl%d.txt", directory, timebuf, stateList[stateListSize - 1].level);
 
         FILE* file = fopen(filename, "w");
 
         if (file != NULL)
         {
+            printf("Writing data to %s\n", filename);
+
             for (size_t i = 0; i < stateListSize; ++i)
             {
                 struct tap_state* current = &stateList[i];
@@ -269,11 +284,15 @@ void writePlacementLog()
                         testMasterConditions(current->mrollFlags)
                     );
             }
+            fclose(file);
         }
-        fclose(file);
-
-        stateListSize = 0;
+        else
+        {
+            printf("Cannot create file at %s\n", filename);
+        }
     }
+
+    stateListSize = 0;
 }
 
 void tetlog_setAddressSpace(running_machine* machine)

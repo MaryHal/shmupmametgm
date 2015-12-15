@@ -9,6 +9,8 @@
 #include <windows.h>
 #endif
 
+#include <stdbool.h>
+
 #include "emu.h"
 #include "debug/debugcpu.h"
 
@@ -67,21 +69,20 @@ enum
     M_SUCCESS  = 127,
 };
 
+const offs_t STATE_ADDR       = 0x06064BF5;  // p1 State
+const offs_t LEVEL_ADDR       = 0x06064BBA;  // p1 Level
+const offs_t TIMER_ADDR       = 0x06064BEA;  // p1 Timer
+const offs_t GRADE_ADDR       = 0x06079378;  // Master-mode internal grade
+const offs_t GRADEPOINTS_ADDR = 0x06079379;  // Master-mode internal grade points
+const offs_t MROLLFLAGS_ADDR  = 0x06064BD0;  // M-Roll flags
+const offs_t INROLL_ADDR      = 0x06066845;  // p1 in-credit-roll
+const offs_t SECTION_ADDR     = 0x06064C25;  // p1 section index
 
-const int STATE_ADDR       = 0x06064BF5;  // p1 State
-const int LEVEL_ADDR       = 0x06064BBA;  // p1 Level
-const int TIMER_ADDR       = 0x06064BEA;  // p1 Timer
-const int GRADE_ADDR       = 0x06079378;  // Master-mode internal grade
-const int GRADEPOINTS_ADDR = 0x06079379;  // Master-mode internal grade points
-const int MROLLFLAGS_ADDR  = 0x06064BD0;  // M-Roll flags
-const int INROLL_ADDR      = 0x06066845;  // p1 in-credit-roll
-const int SECTION_ADDR     = 0x06064C25;  // p1 section index
-
-const int TETRO_ADDR       = 0x06064BF6;  // Current block
-const int NEXT_ADDR        = 0x06064BF8;  // Next block
-const int CURRX_ADDR       = 0x06064BFC;  // Current block X position
-const int CURRY_ADDR       = 0x06064C00;  // Current block Y position
-const int ROTATION_ADDR    = 0x06064BFA;  // Current block rotation state
+const offs_t TETRO_ADDR       = 0x06064BF6;  // Current block
+const offs_t NEXT_ADDR        = 0x06064BF8;  // Next block
+const offs_t CURRX_ADDR       = 0x06064BFC;  // Current block X position
+const offs_t CURRY_ADDR       = 0x06064C00;  // Current block Y position
+const offs_t ROTATION_ADDR    = 0x06064BFA;  // Current block rotation state
 
 struct tap_state
 {
@@ -145,21 +146,51 @@ void fixTapCoordinates(struct tap_state* tstate)
     }
 }
 
-char testMasterConditions(char d)
+bool testMasterConditions(char flags)
 {
-    return d == M_NEUTRAL || d == M_PASS_1 || d == M_PASS_2 || d == M_SUCCESS;
+    return
+        flags == M_NEUTRAL ||
+        flags == M_PASS_1 ||
+        flags == M_PASS_2 ||
+        flags == M_SUCCESS;
 }
 
-char inPlayingState(char state)
+bool inPlayingState(char state)
 {
     return state != TAP_NONE && state != TAP_IDLE && state != TAP_STARTUP;
 }
 
-struct tap_state curState = {0}, prevState = {0};
+bool isDemoState(struct tap_state* state)
+{
+    // First Demo: Two simultaneous single player games. Last tetromino placed
+    // at level 19, timer value 1061.
+    if (state->level == 19 && state->timer == 1061 && state->tetromino == 6)
+    {
+        return true;
+    }
 
-const int MAX_TAP_STATES = 1300; // What a nice number
-struct tap_state stateList[MAX_TAP_STATES];
-unsigned int stateListSize = 0;
+    // Second Demo: Vs Mode. Last tetromino placed at level 17, timer value
+    // 8617.
+    else if (state->level == 17 && state->timer == 8617 && state->tetromino == 2)
+    {
+        return true;
+    }
+
+    // Third Demo: Doubles Mode. Last Tetromino placed at level 15, timer value
+    // 1061.
+    else if (state->level == 15 && state->timer == 1061 && state->tetromino == 5)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+static struct tap_state curState = {0}, prevState = {0};
+
+const size_t MAX_TAP_STATES = 1300; // What a nice number
+static struct tap_state stateList[MAX_TAP_STATES];
+static size_t stateListSize = 0;
 
 const address_space* space = NULL;
 
@@ -178,7 +209,7 @@ void readState(const address_space* space, struct tap_state* state)
     state->mrollFlags = debug_read_byte(space, memory_address_to_byte(space, MROLLFLAGS_ADDR), TRUE);
 }
 
-void pushState(struct tap_state* list, unsigned int* listSize, struct tap_state* state)
+void pushState(struct tap_state* list, size_t* listSize, struct tap_state* state)
 {
     state->tetromino = TapToFumenMapping[state->tetromino];
 
@@ -186,6 +217,63 @@ void pushState(struct tap_state* list, unsigned int* listSize, struct tap_state*
 
     list[*listSize] = *state;
     (*listSize)++;
+}
+
+void writePlacementLog()
+{
+    if (isDemoState(&prevState))
+    {
+        printf("Demo state detected. Not writing piece log.\n");
+    }
+    else
+    {
+        // Push the killing piece. We must use the previous state
+        // since, upon death, TAP clears some data.
+        pushState(stateList, &stateListSize, &prevState);
+
+        // Create fumen directory if it doesn't exist.
+        createDir("fumen/");
+
+        char directory[32];
+        char timebuf[32];
+        char filename[80];
+
+        // Create a directory for the day if it doesn't already exist.
+        time_t rawTime;
+        time(&rawTime);
+        const struct tm* timeInfo = localtime(&rawTime);
+        strftime(directory, 32, "fumen/%F", timeInfo);
+
+        createDir(directory);
+
+        strftime(timebuf, 32, "%H:%M:%S", timeInfo);
+        snprintf(filename, 80, "%s/%s-Lvl%d.txt", directory, timebuf, stateList[stateListSize - 1].level);
+
+        printf("Writing data to %s\n", filename);
+
+        FILE* file = fopen(filename, "w");
+
+        if (file != NULL)
+        {
+            for (size_t i = 0; i < stateListSize; ++i)
+            {
+                struct tap_state* current = &stateList[i];
+                fprintf(file, "%s,%d,%d,%d,%d,%d,%d,%d\n",
+                        GRADE_DISPLAY[(int)current->grade],
+                        current->level,
+                        current->timer,
+                        current->tetromino,
+                        current->xcoord,
+                        current->ycoord,
+                        current->rotation,
+                        testMasterConditions(current->mrollFlags)
+                    );
+            }
+        }
+        fclose(file);
+
+        stateListSize = 0;
+    }
 }
 
 void findAddressSpace(running_machine* machine)
@@ -216,51 +304,6 @@ void runTetrominoLogger()
     // Game is over
     if (inPlayingState(prevState.state) && !inPlayingState(curState.state))
     {
-        // Push the killing piece. We must use the previous state
-        // since, upon death, TAP clears some data.
-        pushState(stateList, &stateListSize, &prevState);
-
-        // Create fumen directory if it doesn't exist.
-        createDir("fumen/");
-
-        char directory[32];
-        char timebuf[32];
-        char filename[80];
-
-        // Create a directory for the day if it doesn't already exist.
-        time_t rawTime;
-        time(&rawTime);
-        struct tm* timeInfo = localtime(&rawTime);
-        strftime(directory, 80, "fumen/%F", timeInfo);
-
-        createDir(directory);
-
-        strftime(timebuf, 80, "%H:%M:%S", timeInfo);
-        snprintf(filename, 80, "%s/%s-Lvl%d.txt", directory, timebuf, stateList[stateListSize - 1].level);
-
-        printf("Writing data to %s\n", filename);
-
-        FILE* file = fopen(filename, "w");
-
-        if (file != NULL)
-        {
-            for (unsigned int i = 0; i < stateListSize; ++i)
-            {
-                struct tap_state* current = &stateList[i];
-                fprintf(file, "%s,%d,%d,%d,%d,%d,%d,%d\n",
-                        GRADE_DISPLAY[(int)current->grade],
-                        current->level,
-                        current->timer,
-                        current->tetromino,
-                        current->xcoord,
-                        current->ycoord,
-                        current->rotation,
-                        testMasterConditions(current->mrollFlags)
-                    );
-            }
-        }
-        fclose(file);
-
-        stateListSize = 0;
+        writePlacementLog();
     }
 }

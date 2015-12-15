@@ -3,7 +3,7 @@
 
 typedef struct running_machine running_machine;
 
-void findAddressSpace(running_machine* machine);
-void runTetrominoLogger();
+void tetlog_setAddressSpace(running_machine* machine);
+void tetlog_run();
 
 #endif /* FUMEN_H */

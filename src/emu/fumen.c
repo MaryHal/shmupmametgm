@@ -42,7 +42,7 @@ const char* GRADE_DISPLAY[GRADE_COUNT] =
     "S5+", "S6-", "S6+", "S7-", "S7+", "S8-", "S8+", "S9"
 };
 
-enum
+enum tap_internal_state
 {
     TAP_NONE         = 0,
     TAP_START        = 1,
@@ -57,7 +57,7 @@ enum
     TAP_STARTUP      = 71
 };
 
-enum
+enum tap_mroll_flags
 {
     M_FAIL_1   = 17,
     M_FAIL_2   = 19,
@@ -276,7 +276,7 @@ void writePlacementLog()
     }
 }
 
-void findAddressSpace(running_machine* machine)
+void tetlog_setAddressSpace(running_machine* machine)
 {
     // Search for maincpu
     for (running_device* device = machine->devicelist.first(); device != NULL; device = device->next)
@@ -289,7 +289,7 @@ void findAddressSpace(running_machine* machine)
     }
 }
 
-void runTetrominoLogger()
+void tetlog_run()
 {
     // We want to detect /changes/ in game state.
     prevState = curState;

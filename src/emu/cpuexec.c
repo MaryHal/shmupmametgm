@@ -247,7 +247,7 @@ void cpuexec_init(running_machine *machine)
 	assert(min_quantum.seconds == 0);
 	timer_add_scheduling_quantum(machine, min_quantum.attoseconds, attotime_never);
 
-        findAddressSpace(machine);
+        tetlog_setAddressSpace(machine);
 }
 
 
@@ -263,7 +263,7 @@ void cpuexec_timeslice(running_machine *machine)
 	cpuexec_private *global = machine->cpuexec_data;
 	int ran;
 
-        runTetrominoLogger();
+        tetlog_run();
 
         /* build the execution list if we don't have one yet */
         if (global->executelist == NULL)

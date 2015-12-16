@@ -81,6 +81,20 @@ enum tap_mroll_flags
     M_SUCCESS  = 127,
 };
 
+bool testMasterConditions(char flags)
+{
+    return
+        flags == M_NEUTRAL ||
+        flags == M_PASS_1  ||
+        flags == M_PASS_2  ||
+        flags == M_SUCCESS;
+}
+
+bool inPlayingState(char state)
+{
+    return state != TAP_NONE && state != TAP_IDLE && state != TAP_STARTUP;
+}
+
 const offs_t STATE_ADDR       = 0x06064BF5;  // p1 State
 const offs_t LEVEL_ADDR       = 0x06064BBA;  // p1 Level
 const offs_t TIMER_ADDR       = 0x06064BEA;  // p1 Timer
@@ -225,20 +239,6 @@ void fixTapCoordinates(struct tap_state* tstate)
     }
 }
 
-bool testMasterConditions(char flags)
-{
-    return
-        flags == M_NEUTRAL ||
-        flags == M_PASS_1  ||
-        flags == M_PASS_2  ||
-        flags == M_SUCCESS;
-}
-
-bool inPlayingState(char state)
-{
-    return state != TAP_NONE && state != TAP_IDLE && state != TAP_STARTUP;
-}
-
 bool testDemoState(struct tap_state* stateList, size_t listSize, struct tap_state* demo, size_t demoSize)
 {
     if (listSize > demoSize)
@@ -248,8 +248,9 @@ bool testDemoState(struct tap_state* stateList, size_t listSize, struct tap_stat
 
     for (size_t i = 0; i < listSize && i < demoSize; ++i)
     {
-        if (stateList[i].level != demo[i].level &&
-            stateList[i].timer != demo[i].timer)
+        if (stateList[i].tetromino != demo[i].tetromino &&
+            stateList[i].xcoord != demo[i].xcoord &&
+            stateList[i].ycoord != demo[i].ycoord)
         {
             return false;
         }

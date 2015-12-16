@@ -89,6 +89,8 @@
 #include "validity.h"
 #include "debug/debugcon.h"
 
+#include "fumen.h"
+
 #include <time.h>
 
 
@@ -294,6 +296,10 @@ int mame_execute(core_options *options)
 			/* then finish setting up our local machine */
 			init_machine(machine);
 
+                        bool runTetlog = !gamename.icmp("tgm2p") && options_get_bool(mame_options(), OPTION_FUMEN);
+                        if (runTetlog)
+                            tetlog_setAddressSpace(machine);
+
 			/* load the configuration settings and NVRAM */
 			settingsloaded = config_load_settings(machine);
 			nvram_load(machine);
@@ -314,7 +320,11 @@ int mame_execute(core_options *options)
 
 				/* execute CPUs if not paused */
 				if (!mame->paused)
-					cpuexec_timeslice(machine);
+                                {
+                                    if (runTetlog)
+					tetlog_run();
+                                    cpuexec_timeslice(machine);
+                                }
 
 				/* otherwise, just pump video updates through */
 				else
@@ -1450,7 +1460,8 @@ static void init_machine(running_machine *machine)
 
 	/* initialize miscellaneous systems */
 	saveload_init(machine);
-	if (options_get_bool(mame_options(), OPTION_CHEAT))
+	if (options_get_bool(mame_options(), OPTION_CHEAT) ||
+            options_get_bool(mame_options(), OPTION_FUMEN))
 		cheat_init(machine);
 
 	/* disallow save state registrations starting here */

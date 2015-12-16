@@ -2,3 +2,6 @@ mametgm64
 *.exe
 
 /obj/
+/fumen/
+*.txt
+/.dir-locals.el

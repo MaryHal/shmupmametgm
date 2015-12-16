@@ -54,6 +54,7 @@ EMUOBJS = \
 	$(EMUOBJ)/emuopts.o \
 	$(EMUOBJ)/emupal.o \
 	$(EMUOBJ)/fileio.o \
+	$(EMUOBJ)/fumen.o \
 	$(EMUOBJ)/hash.o \
 	$(EMUOBJ)/info.o \
 	$(EMUOBJ)/input.o \

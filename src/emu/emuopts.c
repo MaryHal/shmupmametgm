@@ -157,6 +157,7 @@ const options_entry mame_core_options[] =
 	{ NULL,                          NULL,        OPTION_HEADER,     "CORE MISC OPTIONS" },
 	{ "bios",                        NULL,        0,                 "select the system BIOS to use" },
 	{ "cheat;c",                     "0",         OPTION_BOOLEAN,    "enable cheat subsystem" },
+	{ "fumen",                       "0",         OPTION_BOOLEAN,    "enable tetromino logger for tgm2p (this will also enable the cheat subsystem)" },
 	{ "skip_gameinfo",               "0",         OPTION_BOOLEAN,    "skip displaying the information screen at startup" },
 
 	{ NULL }

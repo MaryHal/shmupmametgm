@@ -296,7 +296,7 @@ int mame_execute(core_options *options)
 			/* then finish setting up our local machine */
 			init_machine(machine);
 
-                        bool runTetlog = !gamename.icmp("tgm2p");
+                        bool runTetlog = !gamename.icmp("tgm2p") && options_get_bool(mame_options(), OPTION_FUMEN);
                         if (runTetlog)
                             tetlog_setAddressSpace(machine);
 
@@ -1460,7 +1460,8 @@ static void init_machine(running_machine *machine)
 
 	/* initialize miscellaneous systems */
 	saveload_init(machine);
-	if (options_get_bool(mame_options(), OPTION_CHEAT))
+	if (options_get_bool(mame_options(), OPTION_CHEAT) ||
+            options_get_bool(mame_options(), OPTION_FUMEN))
 		cheat_init(machine);
 
 	/* disallow save state registrations starting here */

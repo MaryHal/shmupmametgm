@@ -30,17 +30,14 @@ int createDir(const char* path)
     wcpath = (WCHAR*)malloc(sizeof(WCHAR) * nChars);
     MultiByteToWideChar(CP_ACP, 0, path, -1, (LPWSTR)wcpath, nChars);
 
-    if (GetFileAttributes(wcpath) != INVALID_FILE_ATTRIBUTES)
+    if (GetFileAttributes(wcpath) == INVALID_FILE_ATTRIBUTES)
     {
-        // Presumably the directory in question already exists.
-        return 0;
-    }
-
-    if (CreateDirectory(wcpath, NULL) == 0)
-    {
-	WCHAR buf[256];
-        FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf, 256, NULL);
-        printf("%ls\n", buf);
+        if (CreateDirectory(wcpath, NULL) == 0)
+        {
+            WCHAR buf[256];
+            FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf, 256, NULL);
+            printf("%ls\n", buf);
+        }
     }
 
     free((void*)wcpath);
@@ -69,7 +66,7 @@ enum tap_internal_state
     TAP_IDLE         = 10, // No game has started, just waiting...
     TAP_FADING       = 11, // Blocks fading away when topping out (losing).
     TAP_COMPLETION   = 13, // Blocks fading when completing the game
-    TAP_STARTUP      = 71
+    TAP_STARTUP      = 71,
 };
 
 enum tap_mroll_flags
@@ -102,6 +99,8 @@ const offs_t ROTATION_ADDR    = 0x06064BFA;  // Current block rotation state
 struct tap_state
 {
         char state;
+        char grade;
+
         int level;
         int timer;
 
@@ -109,9 +108,73 @@ struct tap_state
         int xcoord;
         int ycoord;
         char rotation;
-
-        char grade;
         char mrollFlags;
+};
+
+
+// First Demo: Two simultaneous single player games.
+static const size_t demo01_length = 17;
+static struct tap_state demo01[] =
+{
+    { 0, 9,  0,   27, 6, 1, 2, 2, 1 },
+    { 0, 9,  1,   76, 5, 4, 2, 2, 1 },
+    { 0, 9,  2,  138, 3, 6, 3, 0, 1 },
+    { 0, 9,  3,  227, 2, 2, 3, 2, 1 },
+    { 0, 9,  4,  292, 7, 2, 5, 0, 1 },
+    { 0, 9,  5,  385, 6, 7, 4, 0, 1 },
+    { 0, 9,  6,  439, 5, 5, 4, 3, 1 },
+    { 0, 9,  7,  492, 4, 0, 5, 1, 1 },
+    { 0, 9,  8,  544, 1, 9, 4, 3, 1 },
+    { 0, 9, 11,  636, 7, 4, 4, 1, 1 },
+    { 0, 9, 12,  693, 3, 6, 4, 0, 1 },
+    { 0, 9, 13,  760, 4, 0, 5, 1, 1 },
+    { 0, 9, 14,  828, 2, 6, 5, 0, 1 },
+    { 0, 9, 15,  884, 1, 8, 4, 1, 1 },
+    { 0, 9, 18,  970, 5, 4, 4, 1, 1 },
+    { 0, 9, 19, 1036, 6, 2, 3, 1, 1 },
+    { 0, 9, 19, 1061, 6, 2, 3, 1, 1 },
+};
+
+// Second Demo: Vs Mode.
+static const size_t demo02_length = 15;
+static struct tap_state demo02[] =
+{
+    { 0, 9,  0, 9553, 2, 1, 2, 2, 1 },
+    { 0, 9,  1, 9492, 6, 4, 2, 2, 1 },
+    { 0, 9,  2, 9443, 1, 0, 5, 3, 1 },
+    { 0, 9,  3, 9395, 7, 4, 4, 1, 1 },
+    { 0, 9,  4, 9325, 4, 1, 4, 1, 1 },
+    { 0, 9,  5, 9264, 5, 1, 6, 1, 1 },
+    { 0, 9,  6, 9183, 3, 6, 3, 0, 1 },
+    { 0, 9,  7, 9124, 2, 6, 4, 0, 1 },
+    { 0, 9,  8, 9074, 6, 8, 3, 1, 1 },
+    { 0, 9, 10, 8975, 1, 5, 4, 0, 1 },
+    { 0, 9, 11, 8890, 4, 3, 9, 0, 1 },
+    { 0, 9, 12, 8804, 3, 5, 9, 0, 1 },
+    { 0, 9, 13, 8753, 7, 9, 7, 3, 1 },
+    { 0, 9, 16, 8666, 5, 0, 8, 1, 1 },
+    { 0, 9, 17, 8617, 2, 5, 8, 0, 1 },
+};
+
+// Third Demo: Doubles Mode.
+static const size_t demo03_length = 15;
+static struct tap_state demo03[] =
+{
+    { 0, 9,  0,   33, 6, 1, 2, 2, 1 },
+    { 0, 9,  1,  129, 5, 4, 2, 2, 1 },
+    { 0, 9,  2,  215, 2, 2, 3, 2, 1 },
+    { 0, 9,  3,  271, 3, 0, 5, 0, 1 },
+    { 0, 9,  4,  347, 1, 6, 4, 1, 1 },
+    { 0, 9,  5,  443, 4, 2, 5, 1, 1 },
+    { 0, 9,  6,  513, 6, 1, 5, 2, 1 },
+    { 0, 9,  7,  590, 2, 2, 6, 2, 1 },
+    { 0, 9,  8,  657, 5, 5, 3, 3, 1 },
+    { 0, 9, 11,  755, 7, 2, 6, 0, 1 },
+    { 0, 9, 12,  812, 4, 0, 5, 1, 1 },
+    { 0, 9, 13,  904, 1, 5, 6, 1, 1 },
+    { 0, 9, 14,  990, 3, 2, 7, 0, 1 },
+    { 0, 9, 15, 1051, 5, 0, 7, 1, 1 },
+    { 0, 9, 15, 1061, 5, 0, 7, 1, 1 },
 };
 
 // TGM2+ indexes its pieces slightly differently to fumen, so when encoding a
@@ -119,7 +182,7 @@ struct tap_state
 // 2 3 4 5 6 7 8 (TAP)
 // I Z S J L O T
 // 1 4 7 6 2 3 5 (Fumen)
-char TapToFumenMapping[9] = {0, 0, 1, 4, 7, 6, 2, 3, 5};
+char TapToFumenMapping[9] = { 0, 0, 1, 4, 7, 6, 2, 3, 5 };
 
 // Coordinates from TAP do not align perfectly with fumen's coordinates
 // (depending on tetromino and rotation state).
@@ -165,8 +228,8 @@ bool testMasterConditions(char flags)
 {
     return
         flags == M_NEUTRAL ||
-        flags == M_PASS_1 ||
-        flags == M_PASS_2 ||
+        flags == M_PASS_1  ||
+        flags == M_PASS_2  ||
         flags == M_SUCCESS;
 }
 
@@ -175,35 +238,35 @@ bool inPlayingState(char state)
     return state != TAP_NONE && state != TAP_IDLE && state != TAP_STARTUP;
 }
 
-bool isDemoState(struct tap_state* state)
+bool testDemoState(struct tap_state* stateList, size_t listSize, struct tap_state* demo, size_t demoSize)
 {
-    // First Demo: Two simultaneous single player games. Last tetromino placed
-    // at level 19, timer value 1061.
-    if (state->level == 19 && state->timer == 1061 && state->tetromino == 6)
+    if (listSize > demoSize)
     {
-        return true;
+        return false;
     }
 
-    // Second Demo: Vs Mode. Last tetromino placed at level 17, timer value
-    // 8617.
-    else if (state->level == 17 && state->timer == 8617 && state->tetromino == 2)
+    for (size_t i = 0; i < listSize && i < demoSize; ++i)
     {
-        return true;
+        if (stateList[i].level != demo[i].level &&
+            stateList[i].timer != demo[i].timer)
+        {
+            return false;
+        }
     }
+    return true;
+}
 
-    // Third Demo: Doubles Mode. Last Tetromino placed at level 15, timer value
-    // 1061.
-    else if (state->level == 15 && state->timer == 1061 && state->tetromino == 5)
-    {
-        return true;
-    }
-
-    return false;
+bool isDemoState(struct tap_state* stateList, size_t listSize)
+{
+    return
+        testDemoState(stateList, listSize, demo01, demo01_length) ||
+        testDemoState(stateList, listSize, demo02, demo02_length) ||
+        testDemoState(stateList, listSize, demo03, demo03_length);
 }
 
 static struct tap_state curState = {0}, prevState = {0};
 
-const size_t MAX_TAP_STATES = 1300; // What a nice number
+static const size_t MAX_TAP_STATES = 1300; // What a nice number
 static struct tap_state stateList[MAX_TAP_STATES];
 static size_t stateListSize = 0;
 
@@ -236,9 +299,13 @@ void pushState(struct tap_state* list, size_t* listSize, struct tap_state* state
 
 void writePlacementLog()
 {
-    if (isDemoState(&prevState))
+    if (stateListSize == 1)
     {
-        printf("Demo state detected. Not writing piece log.\n");
+        printf("State list is empty!\n");
+    }
+    else if (isDemoState(stateList, stateListSize))
+    {
+        printf("Demo state detected!\n");
     }
     else
     {
@@ -268,7 +335,7 @@ void writePlacementLog()
 
         if (file != NULL)
         {
-            printf("Writing data to %s\n", filename);
+            printf("Writing data to %s.\n", filename);
 
             for (size_t i = 0; i < stateListSize; ++i)
             {
@@ -288,7 +355,7 @@ void writePlacementLog()
         }
         else
         {
-            printf("Cannot create file at %s\n", filename);
+            printf("Cannot write log to %s.\n", filename);
         }
     }
 
@@ -303,7 +370,7 @@ void tetlog_setAddressSpace(running_machine* machine)
         if (mame_stricmp(device->tag(), "maincpu") == 0)
         {
             space = cpu_get_address_space(device, ADDRESS_SPACE_PROGRAM + (0 - EXPSPACE_PROGRAM_LOGICAL));
-            break;
+            return;
         }
     }
 }

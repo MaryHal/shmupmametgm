@@ -210,6 +210,7 @@ function encode()
         }
     }
 
+    var rollReset = false;
     var level = 0;
     var timer = 0;
     var fumenData = document.getElementById("pdata-text").value.split("\n");
@@ -219,6 +220,7 @@ function encode()
         var line = fumenData[i];
         if (line.length === 0 || !line.trim())
         {
+            console.log("skip");
             continue;
         }
 
@@ -226,6 +228,7 @@ function encode()
 
         if (data.length < 7)
         {
+            console.log("not enough elements");
             continue;
         }
 
@@ -237,6 +240,27 @@ function encode()
         var ycoord = parseInt(data[5]);
         var rot    = parseInt(data[6]);
         var mroll  = parseInt(data[7]);
+
+        var inCreditRoll = data.length > 8 ? parseInt(data[8]) : false;
+
+        if (inCreditRoll && !rollReset)
+        {
+            p[0] = 0;
+            p[1] = 0;
+            p[2] = 0;
+
+            pushframe(frame, "Credit Roll!");
+            processframe(0, 0);
+            frame++;
+
+            // Reset the field in master mode.
+            if (mode === "master")
+            {
+                for(e=0;e<fldblks;e++) f[e]=0;
+            }
+
+            rollReset = true;
+        }
 
         p[0] = piece;
         p[1] = rot;

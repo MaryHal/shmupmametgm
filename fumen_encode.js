@@ -264,7 +264,7 @@ function encode()
     framemax = frame;
 
     var fumenStr = encodeFumen();
-    var fumenURL = baseurl + "?" + fumenStr;
+    var fumenURL = baseurl + "?" + fumenStr + "#english.js";
     var fumenList = document.getElementById("fumen-list");
 
     var li = document.createElement("li");

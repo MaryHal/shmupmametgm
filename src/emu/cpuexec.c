@@ -13,8 +13,6 @@
 #include "profiler.h"
 #include "debugger.h"
 
-#include "fumen.h"
-
 void poll_if_necessary(running_machine *machine);
 void frame_update_callback(running_machine *machine);
 void input_frame(running_machine *machine);
@@ -246,8 +244,6 @@ void cpuexec_init(running_machine *machine)
 	}
 	assert(min_quantum.seconds == 0);
 	timer_add_scheduling_quantum(machine, min_quantum.attoseconds, attotime_never);
-
-        tetlog_setAddressSpace(machine);
 }
 
 
@@ -258,19 +254,17 @@ void cpuexec_init(running_machine *machine)
 
 void cpuexec_timeslice(running_machine *machine)
 {
-        int call_debugger = ((machine->debug_flags & DEBUG_FLAG_ENABLED) != 0);
-        timer_execution_state *timerexec = timer_get_execution_state(machine);
+	int call_debugger = ((machine->debug_flags & DEBUG_FLAG_ENABLED) != 0);
+	timer_execution_state *timerexec = timer_get_execution_state(machine);
 	cpuexec_private *global = machine->cpuexec_data;
 	int ran;
 
-        tetlog_run();
+	/* build the execution list if we don't have one yet */
+	if (global->executelist == NULL)
+		rebuild_execute_list(machine);
 
-        /* build the execution list if we don't have one yet */
-        if (global->executelist == NULL)
-                rebuild_execute_list(machine);
-
-        /* loop until we hit the next timer */
-        while (ATTOTIME_LT(timerexec->basetime, timerexec->nextfire))
+	/* loop until we hit the next timer */
+	while (ATTOTIME_LT(timerexec->basetime, timerexec->nextfire))
 	{
 		cpu_class_data *classdata;
 		UINT32 suspendchanged;

@@ -13,4 +13,19 @@ make SUBTARGET=tgm NOWERROR=1
 
 ** Tetlog
 
-This version of shmupmametgm has been modified so that it can output piece placement data to a text file when a game of tgm2p is completed. You can then paste the file's contents [[http://rawgit.com/sanford1/shmupmametgm/fumen/fumen_encode.html][here]] (fumen_encode.html) to generate a fumen diagram of the game. To enable this functionality, you must either run shmupmametgm with the =-fumen= switch, or specify =fumen   1= in your =mame.ini= file. Note that this will also enable the cheat subsystem.
+This version of shmupmametgm has been modified so that it can output piece placement data to a text file when a game of tgm2p is completed. You can then paste the file's contents [[http://rawgit.com/sanford1/shmupmametgm/fumen/fumen_encode.html][here]] (fumen_encode.html) to generate a [[http://fumen.zui.jp/][fumen]] diagram of the game. For now, this only works for player 1 in tgm2p.
+
+To enable this functionality, you must either run shmupmametgm with the =-fumen= switch like so:
+
+#+BEGIN_SRC sh
+mametgm64 -fumen tgm2p
+#+END_SRC
+
+Or enable it in your =mame.ini= file:
+
+#+BEGIN_SRC 
+# In mame.ini
+fumen          1
+#+END_SRC
+
+Note that this will also enable the cheat subsystem.

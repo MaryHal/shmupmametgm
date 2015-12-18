@@ -272,7 +272,7 @@ static const size_t MAX_TAP_STATES = 1300; // What a nice number
 static struct tap_state stateList[MAX_TAP_STATES];
 static size_t stateListSize = 0;
 
-const address_space* space = NULL;
+static const address_space* space = NULL;
 
 void readState(const address_space* space, struct tap_state* state)
 {

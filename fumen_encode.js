@@ -232,7 +232,7 @@ function encode()
             continue;
         }
 
-        var grade = parseInt(data[0]);
+        var grade = data[0];
         level  = parseInt(data[1]);
         timer  = parseInt(data[2]);
         var piece  = parseInt(data[3]);

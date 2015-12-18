@@ -270,11 +270,11 @@ function encode()
         if (mode === "master")
         {
             comment += mroll ? '~' : '';
-            comment += grade + " ";
+            comment += grade;
         }
         if (document.getElementById("comment-level").checked)
         {
-            comment += level;
+            comment += " " + level;
         }
         if (document.getElementById("comment-time").checked)
         {

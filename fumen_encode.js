@@ -283,11 +283,14 @@ function encode()
         }
         if (document.getElementById("comment-section").checked)
         {
-            if (level > (currentSection + 1) * 100)
+            if (level < 999)
             {
-                currentSection++;
+                if (level > (currentSection + 1) * 100)
+                {
+                    currentSection++;
+                }
+                comment += " (" + currentSection * 100 + " - " + ((currentSection + 1) * 100 - 1) + ")";
             }
-            comment += " " + currentSection * 100 + " - " + (currentSection + 1) * 100;
         }
         if (document.getElementById("comment-level").checked)
         {

@@ -211,8 +211,10 @@ function encode()
     }
 
     var rollReset = false;
+    var currentSection = 0;
     var level = 0;
     var timer = 0;
+
     var fumenData = document.getElementById("pdata-text").value.split("\n");
 
     for (i = 0, len = fumenData.length; i < len; ++i)
@@ -278,6 +280,14 @@ function encode()
         {
             comment += mroll ? '~' : '';
             comment += grade;
+        }
+        if (document.getElementById("comment-section").checked)
+        {
+            if (level > (currentSection + 1) * 100)
+            {
+                currentSection++;
+            }
+            comment += " " + currentSection * 100 + " - " + (currentSection + 1) * 100;
         }
         if (document.getElementById("comment-level").checked)
         {

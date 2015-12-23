@@ -305,11 +305,16 @@ function encode()
     var fumenList = document.getElementById("fumen-list");
 
     var li = document.createElement("li");
-    var link = document.createElement("a");
-    link.href = fumenURL;
-    link.innerHTML = level + " @ " + convertFrameTime(timer) + " (" + fumenStr.length + ")";
+    var rawLink = document.createElement("a");
+    rawLink.href = fumenURL;
+    rawLink.innerHTML = level + " @ " + convertFrameTime(timer) + " (" + fumenURL.length + ")";
 
-    li.appendChild(link);
+    var injectLink = document.createElement("a");
+    injectLink.href = "javascript:(function(){document.getElementById(\"tx\").value=\"" + fumenStr + "\";versioncheck(0);})()";
+    injectLink.innerHTML = " [b] ";
+
+    li.appendChild(rawLink);
+    li.appendChild(injectLink);
     fumenList.insertBefore(li, fumenList.childNodes[0]);
 }
 

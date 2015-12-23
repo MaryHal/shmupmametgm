@@ -13,7 +13,7 @@ make SUBTARGET=tgm NOWERROR=1
 
 ** Tetlog
 
-This version of shmupmametgm has been modified so that it can output piece placement data to a text file when a game of tgm2p is completed. You can then paste the file's contents [[http://rawgit.com/sanford1/shmupmametgm/fumen/fumen_encode.html][here]] (fumen_encode.html) to generate a [[http://fumen.zui.jp/][fumen]] diagram of the game. For now, this only works for player 1 in tgm2p.
+This version of shmupmametgm has been modified so that it can output piece placement data to a text file when a game of tgm2p is completed. You can then paste the file's contents [[http://rawgit.com/sanford1/shmupmametgm/master/fumen_encode.html][here]] (fumen_encode.html) to generate a [[http://fumen.zui.jp/][fumen]] diagram of the game. For now, this only works for player 1 in tgm2p.
 
 To enable this functionality, you must either run shmupmametgm with the =-fumen= switch like so:
 

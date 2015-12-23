@@ -251,14 +251,7 @@ function encode()
             p[1] = 0;
             p[2] = 0;
 
-            if (mroll)
-            {
-                pushframe(frame, "M-Roll!");
-            }
-            else
-            {
-                pushframe(frame, "Fading Roll!");
-            }
+            pushframe(frame, "Credit Roll!");
             processframe(0, 0);
             frame++;
 

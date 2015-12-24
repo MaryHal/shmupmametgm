@@ -549,7 +549,11 @@ VERSIONOBJ = $(OBJ)/version.o
 #-------------------------------------------------
 
 # start with an empty set of libs
-LIBS = 
+LIBS =
+
+ifneq ($(TARGETOS),win32)
+LIBS += -lrt
+endif
 
 # add expat XML library
 ifeq ($(BUILD_EXPAT),1)

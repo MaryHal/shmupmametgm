@@ -152,6 +152,7 @@
 #define OPTION_BIOS					"bios"
 #define OPTION_CHEAT				"cheat"
 #define OPTION_FUMEN				"fumen"
+#define OPTION_TAPTRACKER			"taptracker"
 #define OPTION_SKIP_GAMEINFO		"skip_gameinfo"
 
 

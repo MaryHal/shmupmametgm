@@ -4,13 +4,16 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#include <sys/mman.h>
+#include <fcntl.h>
 #elif defined(_WIN64) || defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
 
-#include <stdbool.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "emu.h"
 #include "debug/debugcpu.h"
@@ -127,6 +130,53 @@ struct tap_state
         int16_t inCreditRoll;
 };
 
+// TGM2+ indexes its pieces slightly differently to fumen, so when encoding a
+// diagram we must convert the indices:
+// 2 3 4 5 6 7 8 (TAP)
+// I Z S J L O T
+// 1 4 7 6 2 3 5 (Fumen)
+char TapToFumenMapping[9] = { 0, 0, 1, 4, 7, 6, 2, 3, 5 };
+
+// Coordinates from TAP do not align perfectly with fumen's coordinates
+// (depending on tetromino and rotation state).
+void fixTapCoordinates(struct tap_state* tstate)
+{
+    if (tstate->tetromino == 1)
+    {
+        // Fix underflow when I tetromino is in column 1.
+        if (tstate->xcoord > 10)
+        {
+            tstate->xcoord = -1;
+        }
+
+        if (tstate->rotation == 1 || tstate->rotation == 3)
+        {
+            tstate->xcoord += 1;
+        }
+    }
+    else if (tstate->tetromino == 6)
+    {
+        if (tstate->rotation == 2)
+        {
+            tstate->ycoord -= 1;
+        }
+    }
+    else if (tstate->tetromino == 2)
+    {
+        if (tstate->rotation == 2)
+        {
+            tstate->ycoord -= 1;
+        }
+    }
+    else if (tstate->tetromino == 5)
+    {
+        if (tstate->rotation == 2)
+        {
+            tstate->ycoord -= 1;
+        }
+    }
+}
+
 int16_t readByteFromMem(const address_space* space, offs_t address)
 {
     return debug_read_byte(space, memory_address_to_byte(space, address), true);
@@ -153,6 +203,16 @@ void readState(const address_space* space, struct tap_state* state)
 
     state->mrollFlags   = readByteFromMem(space, MROLLFLAGS_ADDR);
     state->inCreditRoll = readByteFromMem(space, INROLL_ADDR);
+}
+
+void pushStateToList(struct tap_state* list, size_t* listSize, struct tap_state* state)
+{
+    state->tetromino = TapToFumenMapping[state->tetromino];
+
+    fixTapCoordinates(state);
+
+    list[*listSize] = *state;
+    (*listSize)++;
 }
 
 // First Demo: Two simultaneous single player games.
@@ -220,53 +280,6 @@ static struct tap_state demo03[] =
     { 0, 9, 0, 15, 1061, 5, 0, 7, 1, 1, 0 },
 };
 
-// TGM2+ indexes its pieces slightly differently to fumen, so when encoding a
-// diagram we must convert the indices:
-// 2 3 4 5 6 7 8 (TAP)
-// I Z S J L O T
-// 1 4 7 6 2 3 5 (Fumen)
-char TapToFumenMapping[9] = { 0, 0, 1, 4, 7, 6, 2, 3, 5 };
-
-// Coordinates from TAP do not align perfectly with fumen's coordinates
-// (depending on tetromino and rotation state).
-void fixTapCoordinates(struct tap_state* tstate)
-{
-    if (tstate->tetromino == 1)
-    {
-        // Fix underflow when I tetromino is in column 1.
-        if (tstate->xcoord > 10)
-        {
-            tstate->xcoord = -1;
-        }
-
-        if (tstate->rotation == 1 || tstate->rotation == 3)
-        {
-            tstate->xcoord += 1;
-        }
-    }
-    else if (tstate->tetromino == 6)
-    {
-        if (tstate->rotation == 2)
-        {
-            tstate->ycoord -= 1;
-        }
-    }
-    else if (tstate->tetromino == 2)
-    {
-        if (tstate->rotation == 2)
-        {
-            tstate->ycoord -= 1;
-        }
-    }
-    else if (tstate->tetromino == 5)
-    {
-        if (tstate->rotation == 2)
-        {
-            tstate->ycoord -= 1;
-        }
-    }
-}
-
 bool testDemoState(struct tap_state* stateList, size_t listSize, struct tap_state* demo, size_t demoSize)
 {
     if (listSize > demoSize)
@@ -302,15 +315,10 @@ static size_t stateListSize = 0;
 
 static const address_space* space = NULL;
 
-void pushState(struct tap_state* list, size_t* listSize, struct tap_state* state)
-{
-    state->tetromino = TapToFumenMapping[state->tetromino];
-
-    fixTapCoordinates(state);
-
-    list[*listSize] = *state;
-    (*listSize)++;
-}
+static const char* sharedMemKey = "tgm2p_data";
+static int fd = 0;
+static const size_t vSize = sizeof(struct tap_state);
+static struct tap_state* sharedAddr = NULL;
 
 void writePlacementLog()
 {
@@ -326,7 +334,7 @@ void writePlacementLog()
     {
         // Push the killing piece. We must use the previous state
         // since, upon death, TAP clears some data.
-        pushState(stateList, &stateListSize, &prevState);
+        pushStateToList(stateList, &stateListSize, &prevState);
 
         // Create fumen directory if it doesn't exist.
         createDir("fumen/");
@@ -378,6 +386,55 @@ void writePlacementLog()
     stateListSize = 0;
 }
 
+void tetlog_create_mmap()
+{
+#if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))
+    fd = shm_open(sharedMemKey, O_RDWR | O_CREAT | O_TRUNC, S_IRWXO | S_IRWXG | S_IRWXU);
+
+    // Stretch our new file to the suggested size.
+    if (lseek(fd, vSize - 1, SEEK_SET) == -1)
+    {
+        perror("Could not stretch file via lseek");
+    }
+
+    // In order to change the size of the file, we need to actually write some
+    // data. In this case, we'll be writing an empty string ('\0').
+    if (write(fd, "", 1) != 1)
+    {
+        perror("Could not write the final byte in file");
+    }
+
+    sharedAddr = (struct tap_state*)mmap(NULL, vSize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (sharedAddr == MAP_FAILED)
+    {
+        perror("Could not map memory");
+    }
+
+    if(mlock(sharedAddr, vSize) != 0)
+    {
+        perror("mlock failure");
+    }
+#endif
+
+    // TODO: Windows implementation.
+}
+
+void tetlog_destroy_mmap()
+{
+#if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))
+    if (munlock(sharedAddr, vSize) != 0)
+        perror("Error unlocking memory page");
+
+    if (munmap(sharedAddr, vSize) != 0)
+        perror("Error unmapping memory pointer");
+
+    if (close(fd) != 0)
+        perror("Error closing file");
+
+    shm_unlink(sharedMemKey);
+#endif
+}
+
 void tetlog_setAddressSpace(running_machine* machine)
 {
     // Search for maincpu
@@ -391,21 +448,31 @@ void tetlog_setAddressSpace(running_machine* machine)
     }
 }
 
-void tetlog_run()
+void tetlog_run(bool fumen, bool tracker)
 {
     // We want to detect /changes/ in game state.
     prevState = curState;
     readState(space, &curState);
 
-    // Piece is locked in
-    if (inPlayingState(curState.state) && prevState.state == TAP_ACTIVE && curState.state == TAP_LOCKING)
+    // Log placements
+    if (fumen)
     {
-        pushState(stateList, &stateListSize, &curState);
+        // Piece is locked in
+        if (inPlayingState(curState.state) && prevState.state == TAP_ACTIVE && curState.state == TAP_LOCKING)
+        {
+            pushStateToList(stateList, &stateListSize, &curState);
+        }
+
+        // Game is over
+        if (inPlayingState(prevState.state) && !inPlayingState(curState.state))
+        {
+            writePlacementLog();
+        }
     }
 
-    // Game is over
-    if (inPlayingState(prevState.state) && !inPlayingState(curState.state))
+    // Write current tap state to memory mapped file
+    if (tracker)
     {
-        writePlacementLog();
+        *sharedAddr = curState;
     }
 }

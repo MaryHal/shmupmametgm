@@ -11,9 +11,13 @@ This version correctly configures MAME to use 4-way stick emulation for tgm2p an
 make SUBTARGET=tgm NOWERROR=1
 #+END_SRC
 
-** Tetlog
+** Tetromino Logger
+
+*** Fumenizer
 
 This version of shmupmametgm has been modified so that it can output piece placement data to a text file when a game of tgm2p is completed. You can then paste the file's contents [[http://rawgit.com/sanford1/shmupmametgm/master/fumen_encode.html][here]] (fumen_encode.html) to generate a [[http://fumen.zui.jp/][fumen]] diagram of the game. For now, this only works for player 1 in tgm2p.
+
+**** Enabling fumenizer
 
 To enable this functionality, you must either run shmupmametgm with the =-fumen= switch like so:
 
@@ -23,9 +27,86 @@ mametgm64 -fumen tgm2p
 
 Or enable it in your =mame.ini= file:
 
-#+BEGIN_SRC 
+#+BEGIN_SRC  text
 # In mame.ini
 fumen          1
 #+END_SRC
 
 Note that this will also enable the cheat subsystem.
+
+*** TapTracker
+
+If you're using *nix, this version of shmupmametgm can also write tgm2p data to a memory mapped file at =/dev/shm/tgm2p_data=. With this, other processes can read constantly updated data from tgm2p in MAME for logging purposes, or whatever you can think of! I've written a level graph, section data viewer, and button viewer that you can run alongside shmupmametgm [[https://github.com/sanford1/TapTracker][here]] (also called TapTracker).
+
+**** Enabling taptracker
+
+Similarly to fumenizer, you can activate this functionality for tgm2p with the =-taptracker= switch:
+
+#+BEGIN_SRC sh
+mametgm64 -taptracker tgm2p
+#+END_SRC
+
+Or enable it in your =mame.ini= file (not recommended):
+
+#+BEGIN_SRC text
+# In mame.ini
+taptracker     1
+#+END_SRC
+
+Note that this will also enable the cheat subsystem.
+
+**** Using TapTracker data
+
+***** Memory Struct
+
+#+BEGIN_SRC C
+// int*_t definitions can be found in stdint.h
+struct tap_state
+{
+        int16_t state;
+        int16_t grade;
+        int16_t gradePoints;
+
+        int16_t level;
+        int16_t timer;
+
+        int16_t tetromino;
+        int16_t xcoord;
+        int16_t ycoord;
+        int16_t rotation;
+        int16_t mrollFlags;
+        int16_t inCreditRoll;
+};
+#+END_SRC
+
+***** Map a block of memory
+
+#+BEGIN_SRC C
+const char* sharedMemKey = "tgm2p_data";
+int fd = shm_open(sharedMemKey, O_RDONLY, S_IRWXO | S_IRWXG | S_IRWXU);
+if (fd < 0)
+{
+    perror("Could not create shared memory object");
+    return 1;
+}
+
+const size_t vSize = sizeof(struct tap_state);
+
+struct tap_state* addr = (struct tap_state*)mmap(NULL, vSize, PROT_READ, MAP_SHARED, fd, 0);
+if (addr == MAP_FAILED)
+{
+    perror("Parent: Could not map memory");
+}
+#+END_SRC
+
+Here, the data that =addr= points to will be updated by our MAME process.
+
+***** Cleanup
+
+#+BEGIN_SRC C
+if (munmap(addr, vSize) != 0)
+    perror("Error unmapping memory pointer");
+
+if (close(fd) != 0)
+    perror("Error closing file");
+#+END_SRC

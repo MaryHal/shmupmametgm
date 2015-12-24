@@ -296,9 +296,17 @@ int mame_execute(core_options *options)
 			/* then finish setting up our local machine */
 			init_machine(machine);
 
-                        bool runTetlog = !gamename.icmp("tgm2p") && options_get_bool(mame_options(), OPTION_FUMEN);
-                        if (runTetlog)
+                        bool runFumenizer  = !gamename.icmp("tgm2p") && options_get_bool(mame_options(), OPTION_FUMEN);
+                        bool runTapTracker = !gamename.icmp("tgm2p") && options_get_bool(mame_options(), OPTION_TAPTRACKER);
+                        if (runFumenizer)
+                        {
                             tetlog_setAddressSpace(machine);
+                        }
+                        if (runTapTracker)
+                        {
+                            tetlog_setAddressSpace(machine);
+                            tetlog_create_mmap();
+                        }
 
 			/* load the configuration settings and NVRAM */
 			settingsloaded = config_load_settings(machine);
@@ -321,8 +329,9 @@ int mame_execute(core_options *options)
 				/* execute CPUs if not paused */
 				if (!mame->paused)
                                 {
-                                    if (runTetlog)
-					tetlog_run();
+                                    if (runFumenizer || runTapTracker)
+					tetlog_run(runFumenizer, runTapTracker);
+
                                     cpuexec_timeslice(machine);
                                 }
 
@@ -344,6 +353,9 @@ int mame_execute(core_options *options)
 			sound_mute(machine, TRUE);
 			nvram_save(machine);
 			config_save_settings(machine);
+
+                        if (runTapTracker)
+                            tetlog_destroy_mmap();
 		}
 		catch (emu_fatalerror &fatal)
 		{
@@ -1461,7 +1473,8 @@ static void init_machine(running_machine *machine)
 	/* initialize miscellaneous systems */
 	saveload_init(machine);
 	if (options_get_bool(mame_options(), OPTION_CHEAT) ||
-            options_get_bool(mame_options(), OPTION_FUMEN))
+            options_get_bool(mame_options(), OPTION_FUMEN) ||
+            options_get_bool(mame_options(), OPTION_TAPTRACKER))
 		cheat_init(machine);
 
 	/* disallow save state registrations starting here */

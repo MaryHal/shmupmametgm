@@ -12,6 +12,7 @@
 #include <windows.h>
 #endif
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -442,7 +443,7 @@ void tetlog_setAddressSpace(running_machine* machine)
     {
         if (mame_stricmp(device->tag(), "maincpu") == 0)
         {
-            space = cpu_get_address_space(device, ADDRESS_SPACE_PROGRAM + (0 - EXPSPACE_PROGRAM_LOGICAL));
+            space = device->space(ADDRESS_SPACE_PROGRAM + (0 - EXPSPACE_PROGRAM_LOGICAL));
             return;
         }
     }

@@ -112,84 +112,112 @@ const offs_t ROTATION_ADDR    = 0x06064BFA;  // Current block rotation state
 
 struct tap_state
 {
-        char state;
-        char grade;
+        int16_t state;
+        int16_t grade;
+        int16_t gradePoints;
 
-        int level;
-        int timer;
+        int16_t level;
+        int16_t timer;
 
-        int tetromino;
-        int xcoord;
-        int ycoord;
-        char rotation;
-        char mrollFlags;
-        char inCreditRoll;
+        int16_t tetromino;
+        int16_t xcoord;
+        int16_t ycoord;
+        int16_t rotation;
+        int16_t mrollFlags;
+        int16_t inCreditRoll;
 };
 
+int16_t readByteFromMem(const address_space* space, offs_t address)
+{
+    return debug_read_byte(space, memory_address_to_byte(space, address), true);
+}
+
+int16_t readWordFromMem(const address_space* space, offs_t address)
+{
+    return debug_read_word(space, memory_address_to_byte(space, address), true);
+}
+
+void readState(const address_space* space, struct tap_state* state)
+{
+    state->state        = readByteFromMem(space, STATE_ADDR);
+    state->grade        = readByteFromMem(space, GRADE_ADDR);
+    state->gradePoints  = readByteFromMem(space, GRADEPOINTS_ADDR);
+
+    state->level        = readWordFromMem(space, LEVEL_ADDR);
+    state->timer        = readWordFromMem(space, TIMER_ADDR);
+
+    state->tetromino    = readWordFromMem(space, TETRO_ADDR);
+    state->xcoord       = readWordFromMem(space, CURRX_ADDR);
+    state->ycoord       = readWordFromMem(space, CURRY_ADDR);
+    state->rotation     = readByteFromMem(space, ROTATION_ADDR);
+
+    state->mrollFlags   = readByteFromMem(space, MROLLFLAGS_ADDR);
+    state->inCreditRoll = readByteFromMem(space, INROLL_ADDR);
+}
 
 // First Demo: Two simultaneous single player games.
 static const size_t demo01_length = 17;
 static struct tap_state demo01[] =
 {
-    { 0, 9,  0,   27, 6, 1, 2, 2, 1, 0 },
-    { 0, 9,  1,   76, 5, 4, 2, 2, 1, 0 },
-    { 0, 9,  2,  138, 3, 6, 3, 0, 1, 0 },
-    { 0, 9,  3,  227, 2, 2, 3, 2, 1, 0 },
-    { 0, 9,  4,  292, 7, 2, 5, 0, 1, 0 },
-    { 0, 9,  5,  385, 6, 7, 4, 0, 1, 0 },
-    { 0, 9,  6,  439, 5, 5, 4, 3, 1, 0 },
-    { 0, 9,  7,  492, 4, 0, 5, 1, 1, 0 },
-    { 0, 9,  8,  544, 1, 9, 4, 3, 1, 0 },
-    { 0, 9, 11,  636, 7, 4, 4, 1, 1, 0 },
-    { 0, 9, 12,  693, 3, 6, 4, 0, 1, 0 },
-    { 0, 9, 13,  760, 4, 0, 5, 1, 1, 0 },
-    { 0, 9, 14,  828, 2, 6, 5, 0, 1, 0 },
-    { 0, 9, 15,  884, 1, 8, 4, 1, 1, 0 },
-    { 0, 9, 18,  970, 5, 4, 4, 1, 1, 0 },
-    { 0, 9, 19, 1036, 6, 2, 3, 1, 1, 0 },
-    { 0, 9, 19, 1061, 6, 2, 3, 1, 1, 0 },
+    { 0, 9, 0,  0,   27, 6, 1, 2, 2, 1, 0 },
+    { 0, 9, 0,  1,   76, 5, 4, 2, 2, 1, 0 },
+    { 0, 9, 0,  2,  138, 3, 6, 3, 0, 1, 0 },
+    { 0, 9, 0,  3,  227, 2, 2, 3, 2, 1, 0 },
+    { 0, 9, 0,  4,  292, 7, 2, 5, 0, 1, 0 },
+    { 0, 9, 0,  5,  385, 6, 7, 4, 0, 1, 0 },
+    { 0, 9, 0,  6,  439, 5, 5, 4, 3, 1, 0 },
+    { 0, 9, 0,  7,  492, 4, 0, 5, 1, 1, 0 },
+    { 0, 9, 0,  8,  544, 1, 9, 4, 3, 1, 0 },
+    { 0, 9, 0, 11,  636, 7, 4, 4, 1, 1, 0 },
+    { 0, 9, 0, 12,  693, 3, 6, 4, 0, 1, 0 },
+    { 0, 9, 0, 13,  760, 4, 0, 5, 1, 1, 0 },
+    { 0, 9, 0, 14,  828, 2, 6, 5, 0, 1, 0 },
+    { 0, 9, 0, 15,  884, 1, 8, 4, 1, 1, 0 },
+    { 0, 9, 0, 18,  970, 5, 4, 4, 1, 1, 0 },
+    { 0, 9, 0, 19, 1036, 6, 2, 3, 1, 1, 0 },
+    { 0, 9, 0, 19, 1061, 6, 2, 3, 1, 1, 0 },
 };
 
 // Second Demo: Vs Mode.
 static const size_t demo02_length = 15;
 static struct tap_state demo02[] =
 {
-    { 0, 9,  0, 9553, 2, 1, 2, 2, 1, 0 },
-    { 0, 9,  1, 9492, 6, 4, 2, 2, 1, 0 },
-    { 0, 9,  2, 9443, 1, 0, 5, 3, 1, 0 },
-    { 0, 9,  3, 9395, 7, 4, 4, 1, 1, 0 },
-    { 0, 9,  4, 9325, 4, 1, 4, 1, 1, 0 },
-    { 0, 9,  5, 9264, 5, 1, 6, 1, 1, 0 },
-    { 0, 9,  6, 9183, 3, 6, 3, 0, 1, 0 },
-    { 0, 9,  7, 9124, 2, 6, 4, 0, 1, 0 },
-    { 0, 9,  8, 9074, 6, 8, 3, 1, 1, 0 },
-    { 0, 9, 10, 8975, 1, 5, 4, 0, 1, 0 },
-    { 0, 9, 11, 8890, 4, 3, 9, 0, 1, 0 },
-    { 0, 9, 12, 8804, 3, 5, 9, 0, 1, 0 },
-    { 0, 9, 13, 8753, 7, 9, 7, 3, 1, 0 },
-    { 0, 9, 16, 8666, 5, 0, 8, 1, 1, 0 },
-    { 0, 9, 17, 8617, 2, 5, 8, 0, 1, 0 },
+    { 0, 9, 0,  0, 9553, 2, 1, 2, 2, 1, 0 },
+    { 0, 9, 0,  1, 9492, 6, 4, 2, 2, 1, 0 },
+    { 0, 9, 0,  2, 9443, 1, 0, 5, 3, 1, 0 },
+    { 0, 9, 0,  3, 9395, 7, 4, 4, 1, 1, 0 },
+    { 0, 9, 0,  4, 9325, 4, 1, 4, 1, 1, 0 },
+    { 0, 9, 0,  5, 9264, 5, 1, 6, 1, 1, 0 },
+    { 0, 9, 0,  6, 9183, 3, 6, 3, 0, 1, 0 },
+    { 0, 9, 0,  7, 9124, 2, 6, 4, 0, 1, 0 },
+    { 0, 9, 0,  8, 9074, 6, 8, 3, 1, 1, 0 },
+    { 0, 9, 0, 10, 8975, 1, 5, 4, 0, 1, 0 },
+    { 0, 9, 0, 11, 8890, 4, 3, 9, 0, 1, 0 },
+    { 0, 9, 0, 12, 8804, 3, 5, 9, 0, 1, 0 },
+    { 0, 9, 0, 13, 8753, 7, 9, 7, 3, 1, 0 },
+    { 0, 9, 0, 16, 8666, 5, 0, 8, 1, 1, 0 },
+    { 0, 9, 0, 17, 8617, 2, 5, 8, 0, 1, 0 },
 };
 
 // Third Demo: Doubles Mode.
 static const size_t demo03_length = 15;
 static struct tap_state demo03[] =
 {
-    { 0, 9,  0,   33, 6, 1, 2, 2, 1, 0 },
-    { 0, 9,  1,  129, 5, 4, 2, 2, 1, 0 },
-    { 0, 9,  2,  215, 2, 2, 3, 2, 1, 0 },
-    { 0, 9,  3,  271, 3, 0, 5, 0, 1, 0 },
-    { 0, 9,  4,  347, 1, 6, 4, 1, 1, 0 },
-    { 0, 9,  5,  443, 4, 2, 5, 1, 1, 0 },
-    { 0, 9,  6,  513, 6, 1, 5, 2, 1, 0 },
-    { 0, 9,  7,  590, 2, 2, 6, 2, 1, 0 },
-    { 0, 9,  8,  657, 5, 5, 3, 3, 1, 0 },
-    { 0, 9, 11,  755, 7, 2, 6, 0, 1, 0 },
-    { 0, 9, 12,  812, 4, 0, 5, 1, 1, 0 },
-    { 0, 9, 13,  904, 1, 5, 6, 1, 1, 0 },
-    { 0, 9, 14,  990, 3, 2, 7, 0, 1, 0 },
-    { 0, 9, 15, 1051, 5, 0, 7, 1, 1, 0 },
-    { 0, 9, 15, 1061, 5, 0, 7, 1, 1, 0 },
+    { 0, 9, 0,  0,   33, 6, 1, 2, 2, 1, 0 },
+    { 0, 9, 0,  1,  129, 5, 4, 2, 2, 1, 0 },
+    { 0, 9, 0,  2,  215, 2, 2, 3, 2, 1, 0 },
+    { 0, 9, 0,  3,  271, 3, 0, 5, 0, 1, 0 },
+    { 0, 9, 0,  4,  347, 1, 6, 4, 1, 1, 0 },
+    { 0, 9, 0,  5,  443, 4, 2, 5, 1, 1, 0 },
+    { 0, 9, 0,  6,  513, 6, 1, 5, 2, 1, 0 },
+    { 0, 9, 0,  7,  590, 2, 2, 6, 2, 1, 0 },
+    { 0, 9, 0,  8,  657, 5, 5, 3, 3, 1, 0 },
+    { 0, 9, 0, 11,  755, 7, 2, 6, 0, 1, 0 },
+    { 0, 9, 0, 12,  812, 4, 0, 5, 1, 1, 0 },
+    { 0, 9, 0, 13,  904, 1, 5, 6, 1, 1, 0 },
+    { 0, 9, 0, 14,  990, 3, 2, 7, 0, 1, 0 },
+    { 0, 9, 0, 15, 1051, 5, 0, 7, 1, 1, 0 },
+    { 0, 9, 0, 15, 1061, 5, 0, 7, 1, 1, 0 },
 };
 
 // TGM2+ indexes its pieces slightly differently to fumen, so when encoding a
@@ -273,22 +301,6 @@ static struct tap_state stateList[MAX_TAP_STATES];
 static size_t stateListSize = 0;
 
 static const address_space* space = NULL;
-
-void readState(const address_space* space, struct tap_state* state)
-{
-    state->state      = debug_read_byte(space, memory_address_to_byte(space, STATE_ADDR), TRUE);
-    state->level      = debug_read_word(space, memory_address_to_byte(space, LEVEL_ADDR), TRUE);
-    state->timer      = debug_read_word(space, memory_address_to_byte(space, TIMER_ADDR), TRUE);
-
-    state->tetromino  = debug_read_word(space, memory_address_to_byte(space, TETRO_ADDR), TRUE);
-    state->xcoord     = debug_read_word(space, memory_address_to_byte(space, CURRX_ADDR), TRUE);
-    state->ycoord     = debug_read_word(space, memory_address_to_byte(space, CURRY_ADDR), TRUE);
-    state->rotation   = debug_read_byte(space, memory_address_to_byte(space, ROTATION_ADDR), TRUE);
-
-    state->grade = debug_read_byte(space, memory_address_to_byte(space, GRADE_ADDR), TRUE);
-    state->mrollFlags = debug_read_byte(space, memory_address_to_byte(space, MROLLFLAGS_ADDR), TRUE);
-    state->inCreditRoll = debug_read_byte(space, memory_address_to_byte(space, INROLL_ADDR), TRUE);
-}
 
 void pushState(struct tap_state* list, size_t* listSize, struct tap_state* state)
 {

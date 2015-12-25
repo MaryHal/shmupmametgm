@@ -178,32 +178,22 @@ void fixTapCoordinates(struct tap_state* tstate)
     }
 }
 
-int16_t readByteFromMem(const address_space* space, offs_t address)
-{
-    return debug_read_byte(space, memory_address_to_byte(space, address), true);
-}
-
-int16_t readWordFromMem(const address_space* space, offs_t address)
-{
-    return debug_read_word(space, memory_address_to_byte(space, address), true);
-}
-
 void readState(const address_space* space, struct tap_state* state)
 {
-    state->state        = readByteFromMem(space, STATE_ADDR);
-    state->grade        = readByteFromMem(space, GRADE_ADDR);
-    state->gradePoints  = readByteFromMem(space, GRADEPOINTS_ADDR);
+    state->state        = memory_read_byte(space, STATE_ADDR);
+    state->grade        = memory_read_byte(space, GRADE_ADDR);
+    state->gradePoints  = memory_read_byte(space, GRADEPOINTS_ADDR);
 
-    state->level        = readWordFromMem(space, LEVEL_ADDR);
-    state->timer        = readWordFromMem(space, TIMER_ADDR);
+    state->level        = memory_read_word(space, LEVEL_ADDR);
+    state->timer        = memory_read_word(space, TIMER_ADDR);
 
-    state->tetromino    = readWordFromMem(space, TETRO_ADDR);
-    state->xcoord       = readWordFromMem(space, CURRX_ADDR);
-    state->ycoord       = readWordFromMem(space, CURRY_ADDR);
-    state->rotation     = readByteFromMem(space, ROTATION_ADDR);
+    state->tetromino    = memory_read_word(space, TETRO_ADDR);
+    state->xcoord       = memory_read_word(space, CURRX_ADDR);
+    state->ycoord       = memory_read_word(space, CURRY_ADDR);
+    state->rotation     = memory_read_byte(space, ROTATION_ADDR);
 
-    state->mrollFlags   = readByteFromMem(space, MROLLFLAGS_ADDR);
-    state->inCreditRoll = readByteFromMem(space, INROLL_ADDR);
+    state->mrollFlags   = memory_read_byte(space, MROLLFLAGS_ADDR);
+    state->inCreditRoll = memory_read_byte(space, INROLL_ADDR);
 }
 
 void pushStateToList(struct tap_state* list, size_t* listSize, struct tap_state* state)
@@ -454,6 +444,8 @@ void tetlog_run(bool fumen, bool tracker)
     // We want to detect /changes/ in game state.
     prevState = curState;
     readState(space, &curState);
+
+    /* printf("%d\n", memory_read_byte(space, STATE_ADDR)); */
 
     // Log placements
     if (fumen)

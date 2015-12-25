@@ -32,8 +32,6 @@ Or enable it in your =mame.ini= file:
 fumen          1
 #+END_SRC
 
-Note that this will also enable the cheat subsystem.
-
 *** TapTracker
 
 If you're using *nix, this version of shmupmametgm can also write tgm2p data to a memory mapped file at =/dev/shm/tgm2p_data=. With this, other processes can read constantly updated data from tgm2p in MAME for logging purposes, or whatever you can think of! I've written a level graph, section data viewer, and button viewer that you can run alongside shmupmametgm [[https://github.com/sanford1/TapTracker][here]] (also called TapTracker).
@@ -52,8 +50,6 @@ Or enable it in your =mame.ini= file (not recommended):
 # In mame.ini
 taptracker     1
 #+END_SRC
-
-Note that this will also enable the cheat subsystem.
 
 **** Using TapTracker data
 ***** In C

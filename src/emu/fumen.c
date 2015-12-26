@@ -1,5 +1,11 @@
 #include "fumen.h"
 
+#include <stdlib.h>
+#include <time.h>
+
+#include "emu.h"
+#include "debug/express.h"
+
 #if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))
 #include <unistd.h>
 #include <sys/types.h>
@@ -7,28 +13,72 @@
 
 #include <sys/mman.h>
 #include <fcntl.h>
-#elif defined(_WIN64) || defined(_WIN32)
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#endif
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <time.h>
-
-#include "emu.h"
-#include "debug/debugcpu.h"
+static const char* sharedMemKey = "tgm2p_data";
+static int fd = 0;
+static const size_t vSize = sizeof(struct tap_state);
+static struct tap_state* sharedAddr = NULL;
 
 int createDir(const char* path)
 {
-#if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))
     struct stat st = {0};
     if (stat(path, &st) == -1)
     {
         return mkdir(path, 0700);
     }
     return 0;
+}
+
+void tetlog_create_mmap()
+{
+    fd = shm_open(sharedMemKey, O_RDWR | O_CREAT | O_TRUNC, S_IRWXO | S_IRWXG | S_IRWXU);
+
+    // Stretch our new file to the suggested size.
+    if (lseek(fd, vSize - 1, SEEK_SET) == -1)
+    {
+        perror("Could not stretch file via lseek");
+    }
+
+    // In order to change the size of the file, we need to actually write some
+    // data. In this case, we'll be writing an empty string ('\0').
+    if (write(fd, "", 1) != 1)
+    {
+        perror("Could not write the final byte in file");
+    }
+
+    sharedAddr = (struct tap_state*)mmap(NULL, vSize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (sharedAddr == MAP_FAILED)
+    {
+        perror("Could not map memory");
+    }
+
+    if(mlock(sharedAddr, vSize) != 0)
+    {
+        perror("mlock failure");
+    }
+}
+
+void tetlog_destroy_mmap()
+{
+    if (munlock(sharedAddr, vSize) != 0)
+        perror("Error unlocking memory page");
+
+    if (munmap(sharedAddr, vSize) != 0)
+        perror("Error unmapping memory pointer");
+
+    if (close(fd) != 0)
+        perror("Error closing file");
+
+    shm_unlink(sharedMemKey);
+}
+
 #elif defined(_WIN64) || defined(_WIN32)
+
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
+int createDir(const char* path)
+{
     const WCHAR* wcpath;
     int nChars = MultiByteToWideChar(CP_ACP, 0, path, -1, NULL, 0);
     wcpath = (WCHAR*)malloc(sizeof(WCHAR) * nChars);
@@ -47,8 +97,19 @@ int createDir(const char* path)
     free((void*)wcpath);
 
     return 0;
-#endif
 }
+
+void tetlog_create_mmap()
+{
+    // TODO
+}
+
+void tetlog_destroy_mmap()
+{
+    // TODO
+}
+
+#endif
 
 const int GRADE_COUNT = 32;
 const char* GRADE_DISPLAY[GRADE_COUNT] =
@@ -113,23 +174,6 @@ const offs_t NEXT_ADDR        = 0x06064BF8;  // Next block
 const offs_t CURRX_ADDR       = 0x06064BFC;  // Current block X position
 const offs_t CURRY_ADDR       = 0x06064C00;  // Current block Y position
 const offs_t ROTATION_ADDR    = 0x06064BFA;  // Current block rotation state
-
-struct tap_state
-{
-        int16_t state;
-        int16_t grade;
-        int16_t gradePoints;
-
-        int16_t level;
-        int16_t timer;
-
-        int16_t tetromino;
-        int16_t xcoord;
-        int16_t ycoord;
-        int16_t rotation;
-        int16_t mrollFlags;
-        int16_t inCreditRoll;
-};
 
 // TGM2+ indexes its pieces slightly differently to fumen, so when encoding a
 // diagram we must convert the indices:
@@ -306,14 +350,9 @@ static size_t stateListSize = 0;
 
 static const address_space* space = NULL;
 
-static const char* sharedMemKey = "tgm2p_data";
-static int fd = 0;
-static const size_t vSize = sizeof(struct tap_state);
-static struct tap_state* sharedAddr = NULL;
-
 void writePlacementLog()
 {
-    if (stateListSize == 1)
+    if (stateListSize == 0)
     {
         printf("State list is empty!\n");
     }
@@ -375,55 +414,6 @@ void writePlacementLog()
     }
 
     stateListSize = 0;
-}
-
-void tetlog_create_mmap()
-{
-#if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))
-    fd = shm_open(sharedMemKey, O_RDWR | O_CREAT | O_TRUNC, S_IRWXO | S_IRWXG | S_IRWXU);
-
-    // Stretch our new file to the suggested size.
-    if (lseek(fd, vSize - 1, SEEK_SET) == -1)
-    {
-        perror("Could not stretch file via lseek");
-    }
-
-    // In order to change the size of the file, we need to actually write some
-    // data. In this case, we'll be writing an empty string ('\0').
-    if (write(fd, "", 1) != 1)
-    {
-        perror("Could not write the final byte in file");
-    }
-
-    sharedAddr = (struct tap_state*)mmap(NULL, vSize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (sharedAddr == MAP_FAILED)
-    {
-        perror("Could not map memory");
-    }
-
-    if(mlock(sharedAddr, vSize) != 0)
-    {
-        perror("mlock failure");
-    }
-#endif
-
-    // TODO: Windows implementation.
-}
-
-void tetlog_destroy_mmap()
-{
-#if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))
-    if (munlock(sharedAddr, vSize) != 0)
-        perror("Error unlocking memory page");
-
-    if (munmap(sharedAddr, vSize) != 0)
-        perror("Error unmapping memory pointer");
-
-    if (close(fd) != 0)
-        perror("Error closing file");
-
-    shm_unlink(sharedMemKey);
-#endif
 }
 
 void tetlog_setAddressSpace(running_machine* machine)

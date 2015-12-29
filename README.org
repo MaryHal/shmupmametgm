@@ -115,16 +115,16 @@ if (close(fd) != 0)
   import struct
   import time
 
-  DATA_BLOCK_SIZE = 4
+  DATA_BLOCK_SIZE = 2
 
   def unpack_mmap_block(mm, n):
-      """Decode the nth 4-byte long byte string from mapped memory. This works with
+      """Decode the nth 2-byte long byte string from mapped memory. This works with
   both python 2 and python 3"""
-      return struct.unpack("<L", mm[n*DATA_BLOCK_SIZE:(n+1)*DATA_BLOCK_SIZE])[0]
+      return struct.unpack("@h", mm[n*DATA_BLOCK_SIZE:(n+1)*DATA_BLOCK_SIZE])[0]
 
   def main():
       with open("/dev/shm/tgm2p_data", "r+b") as f:
-          # The tap_state struct has 11 4-byte integers, so that's how many bytes
+          # The tap_state struct has 11 2-byte integers, so that's how many bytes
           # we're mapping.
           mm = mmap.mmap(f.fileno(), DATA_BLOCK_SIZE * 11)
 

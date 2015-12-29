@@ -77,6 +77,8 @@ void tetlog_destroy_mmap()
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+static struct tap_state* sharedAddr = NULL;
+
 int createDir(const char* path)
 {
     const WCHAR* wcpath;

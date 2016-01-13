@@ -198,16 +198,19 @@ function encode()
 {
     newdata();
 
-    // Figure out which mode is selected
-    var mode = document.getElementsByName("tap-mode");
-    for (var i = 0, len = mode.length; i < len; ++i)
-    {
-        if (mode[i].checked)
-        {
-            mode = mode[i].value;
-            break;
-        }
-    }
+    // Deprecated, shmupmametgm will report mode in output.
+    // // Figure out which mode is selected
+    // var mode = document.getElementsByName("tap-mode");
+    // for (var i = 0, len = mode.length; i < len; ++i)
+    // {
+    //     if (mode[i].checked)
+    //     {
+    //         mode = mode[i].value;
+    //         break;
+    //     }
+    // }
+
+    var mode = "";
 
     var rollReset = false;
     var currentSection = 0;
@@ -216,12 +219,20 @@ function encode()
 
     var fumenData = document.getElementById("pdata-text").value.split("\n");
 
-    for (i = 0, len = fumenData.length; i < len; ++i)
+    for (var i = 0, len = fumenData.length; i < len; ++i)
     {
         var line = fumenData[i];
+
+        // Check if line is empty.
         if (line.length === 0 || !line.trim())
         {
             console.log("skip");
+            continue;
+        }
+
+        if (line === "master" || line === "death")
+        {
+            mode = line;
             continue;
         }
 

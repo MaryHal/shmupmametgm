@@ -19,6 +19,8 @@ struct tap_state
         int16_t rotation;
         int16_t mrollFlags;
         int16_t inCreditRoll;
+
+        int16_t gameMode;
 };
 
 typedef struct running_machine running_machine;

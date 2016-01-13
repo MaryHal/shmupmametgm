@@ -148,6 +148,23 @@ enum tap_mroll_flags
     M_SUCCESS  = 127,
 };
 
+enum tap_game_mode
+{
+    TAP_MODE_NULL           = 0,
+    TAP_MODE_NORMAL         = 1,
+    TAP_MODE_MASTER         = 2,
+    TAP_MODE_DOUBLES        = 4,
+    TAP_MODE_NORMAL_VERSUS  = 9,
+    TAP_MODE_MASTER_VERSUS  = 10,
+    TAP_MODE_MASTER_CREDITS = 18,
+    TAP_MODE_TGMPLUS_VERSUS = 136,
+    TAP_MODE_TGMPLUS        = 128,
+    TAP_MODE_MASTER_ITEM    = 514,
+    TAP_MODE_TGMPLUS_ITEM   = 640,
+    TAP_MODE_DEATH          = 4096,
+    TAP_MODE_DEATH_VERSUS   = 4104
+};
+
 bool testMasterConditions(char flags)
 {
     return
@@ -176,6 +193,8 @@ const offs_t NEXT_ADDR        = 0x06064BF8;  // Next block
 const offs_t CURRX_ADDR       = 0x06064BFC;  // Current block X position
 const offs_t CURRY_ADDR       = 0x06064C00;  // Current block Y position
 const offs_t ROTATION_ADDR    = 0x06064BFA;  // Current block rotation state
+
+const offs_t GAMEMODE_ADDR    = 0x06064BA4;  // Current game mode
 
 // TGM2+ indexes its pieces slightly differently to fumen, so when encoding a
 // diagram we must convert the indices:
@@ -240,6 +259,8 @@ void readState(const address_space* space, struct tap_state* state)
 
     state->mrollFlags   = memory_read_byte(space, MROLLFLAGS_ADDR);
     state->inCreditRoll = memory_read_byte(space, INROLL_ADDR);
+
+    state->gameMode = memory_read_word(space, GAMEMODE_ADDR);
 }
 
 void pushStateToList(struct tap_state* list, size_t* listSize, struct tap_state* state)
@@ -391,6 +412,11 @@ void writePlacementLog()
         if (file != NULL)
         {
             printf("Writing data to %s.\n", filename);
+
+            if (prevState.gameMode == TAP_MODE_MASTER)
+                fprintf(file, "master\n");
+            else if (prevState.gameMode == TAP_MODE_DEATH)
+                fprintf(file, "death\n");
 
             for (size_t i = 0; i < stateListSize; ++i)
             {

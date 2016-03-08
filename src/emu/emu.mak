@@ -54,7 +54,6 @@ EMUOBJS = \
 	$(EMUOBJ)/emuopts.o \
 	$(EMUOBJ)/emupal.o \
 	$(EMUOBJ)/fileio.o \
-	$(EMUOBJ)/fumen.o \
 	$(EMUOBJ)/hash.o \
 	$(EMUOBJ)/info.o \
 	$(EMUOBJ)/input.o \
@@ -72,6 +71,9 @@ EMUOBJS = \
 	$(EMUOBJ)/sound.o \
 	$(EMUOBJ)/state.o \
 	$(EMUOBJ)/streams.o \
+	$(EMUOBJ)/tgmtracker.o \
+	$(EMUOBJ)/tgmj_handler.o \
+	$(EMUOBJ)/tgm2p_handler.o \
 	$(EMUOBJ)/tilemap.o \
 	$(EMUOBJ)/timer.o \
 	$(EMUOBJ)/ui.o \

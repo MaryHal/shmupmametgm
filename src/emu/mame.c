@@ -89,7 +89,7 @@
 #include "validity.h"
 #include "debug/debugcon.h"
 
-#include "fumen.h"
+#include "tgmtracker.h"
 
 #include <time.h>
 
@@ -296,16 +296,22 @@ int mame_execute(core_options *options)
 			/* then finish setting up our local machine */
 			init_machine(machine);
 
-                        bool runFumenizer  = !gamename.icmp("tgm2p") && options_get_bool(mame_options(), OPTION_FUMEN);
-                        bool runTapTracker = !gamename.icmp("tgm2p") && options_get_bool(mame_options(), OPTION_TAPTRACKER);
-                        if (runFumenizer)
+                        struct tgmtracker_t* tt = NULL;
+                        if (gamename.icmp("tgm2p") == 0)
+                            tt = &tgm2p_tracker;
+                        else if (gamename.icmp("tgmj") == 0)
+                            tt = &tgmj_tracker;
+
+                        bool runFumenizer  = options_get_bool(mame_options(), OPTION_FUMEN);
+                        bool runTapTracker = options_get_bool(mame_options(), OPTION_TAPTRACKER);
+                        if (tt && runFumenizer)
                         {
-                            tetlog_setAddressSpace(machine);
+                            tt->setAddressSpace(machine);
                         }
-                        if (runTapTracker)
+                        if (tt && runTapTracker)
                         {
-                            tetlog_setAddressSpace(machine);
-                            tetlog_create_mmap();
+                            tt->setAddressSpace(machine);
+                            tt->initialize();
                         }
 
 			/* load the configuration settings and NVRAM */
@@ -329,8 +335,8 @@ int mame_execute(core_options *options)
 				/* execute CPUs if not paused */
 				if (!mame->paused)
                                 {
-                                    if (runFumenizer || runTapTracker)
-					tetlog_run(runFumenizer, runTapTracker);
+                                    if (tt && (runFumenizer || runTapTracker))
+					tt->run(runFumenizer, runTapTracker);
 
                                     cpuexec_timeslice(machine);
                                 }
@@ -355,7 +361,7 @@ int mame_execute(core_options *options)
 			config_save_settings(machine);
 
                         if (runTapTracker)
-                            tetlog_destroy_mmap();
+                            tt->cleanup();
 		}
 		catch (emu_fatalerror &fatal)
 		{

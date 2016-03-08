@@ -1,4 +1,4 @@
-#include "fumen.h"
+#include "tgm2p_handler.h"
 
 #include <stdlib.h>
 #include <time.h>
@@ -29,7 +29,7 @@ int createDir(const char* path)
     return 0;
 }
 
-void tetlog_create_mmap()
+void tgm2p_create_mmap()
 {
     fd = shm_open(sharedMemKey, O_RDWR | O_CREAT | O_TRUNC, S_IRWXO | S_IRWXG | S_IRWXU);
 
@@ -58,7 +58,7 @@ void tetlog_create_mmap()
     }
 }
 
-void tetlog_destroy_mmap()
+void tgm2p_destroy_mmap()
 {
     if (munlock(sharedAddr, vSize) != 0)
         perror("Error unlocking memory page");
@@ -101,12 +101,12 @@ int createDir(const char* path)
     return 0;
 }
 
-void tetlog_create_mmap()
+void tgm2p_create_mmap()
 {
     // TODO
 }
 
-void tetlog_destroy_mmap()
+void tgm2p_destroy_mmap()
 {
     // TODO
 }
@@ -444,7 +444,7 @@ void writePlacementLog()
     stateListSize = 0;
 }
 
-void tetlog_setAddressSpace(running_machine* machine)
+void tgm2p_setAddressSpace(running_machine* machine)
 {
     // Search for maincpu
     for (running_device* device = machine->devicelist.first(); device != NULL; device = device->next)
@@ -457,7 +457,7 @@ void tetlog_setAddressSpace(running_machine* machine)
     }
 }
 
-void tetlog_run(bool fumen, bool tracker)
+void tgm2p_run(bool fumen, bool tracker)
 {
     // We want to detect /changes/ in game state.
     prevState = curState;

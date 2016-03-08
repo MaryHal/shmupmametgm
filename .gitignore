@@ -5,3 +5,4 @@ mametgm64
 /fumen/
 *.txt
 /.dir-locals.el
+compile_commands.json

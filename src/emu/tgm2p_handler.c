@@ -1,5 +1,8 @@
 #include "tgm2p_handler.h"
 
+#include "tgmtracker.h"
+#include "tgm_memorymap.h"
+
 #include <stdlib.h>
 #include <time.h>
 
@@ -7,17 +10,7 @@
 #include "debug/express.h"
 
 #if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))
-#include <unistd.h>
-#include <sys/types.h>
 #include <sys/stat.h>
-
-#include <sys/mman.h>
-#include <fcntl.h>
-
-static const char* sharedMemKey = "tgm2p_data";
-static int fd = 0;
-static const size_t vSize = sizeof(struct tap_state);
-static struct tap_state* sharedAddr = NULL;
 
 int createDir(const char* path)
 {
@@ -31,45 +24,12 @@ int createDir(const char* path)
 
 void tgm2p_create_mmap()
 {
-    fd = shm_open(sharedMemKey, O_RDWR | O_CREAT | O_TRUNC, S_IRWXO | S_IRWXG | S_IRWXU);
-
-    // Stretch our new file to the suggested size.
-    if (lseek(fd, vSize - 1, SEEK_SET) == -1)
-    {
-        perror("Could not stretch file via lseek");
-    }
-
-    // In order to change the size of the file, we need to actually write some
-    // data. In this case, we'll be writing an empty string ('\0').
-    if (write(fd, "", 1) != 1)
-    {
-        perror("Could not write the final byte in file");
-    }
-
-    sharedAddr = (struct tap_state*)mmap(NULL, vSize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (sharedAddr == MAP_FAILED)
-    {
-        perror("Could not map memory");
-    }
-
-    if(mlock(sharedAddr, vSize) != 0)
-    {
-        perror("mlock failure");
-    }
+    tgm_mm_create(sizeof(struct tap_state));
 }
 
 void tgm2p_destroy_mmap()
 {
-    if (munlock(sharedAddr, vSize) != 0)
-        perror("Error unlocking memory page");
-
-    if (munmap(sharedAddr, vSize) != 0)
-        perror("Error unmapping memory pointer");
-
-    if (close(fd) != 0)
-        perror("Error closing file");
-
-    shm_unlink(sharedMemKey);
+    tgm_mm_destroy();
 }
 
 #elif defined(_WIN64) || defined(_WIN32)
@@ -157,8 +117,8 @@ enum tap_game_mode
     TAP_MODE_NORMAL_VERSUS  = 9,
     TAP_MODE_MASTER_VERSUS  = 10,
     TAP_MODE_MASTER_CREDITS = 18,
-    TAP_MODE_TGMPLUS_VERSUS = 136,
     TAP_MODE_TGMPLUS        = 128,
+    TAP_MODE_TGMPLUS_VERSUS = 136,
     TAP_MODE_MASTER_ITEM    = 514,
     TAP_MODE_TGMPLUS_ITEM   = 640,
     TAP_MODE_DEATH          = 4096,
@@ -446,15 +406,7 @@ void writePlacementLog()
 
 void tgm2p_setAddressSpace(running_machine* machine)
 {
-    // Search for maincpu
-    for (running_device* device = machine->devicelist.first(); device != NULL; device = device->next)
-    {
-        if (mame_stricmp(device->tag(), "maincpu") == 0)
-        {
-            space = device->space(ADDRESS_SPACE_PROGRAM + (0 - EXPSPACE_PROGRAM_LOGICAL));
-            return;
-        }
-    }
+    space = tt_setAddressSpace(machine);
 }
 
 void tgm2p_run(bool fumen, bool tracker)
@@ -484,6 +436,6 @@ void tgm2p_run(bool fumen, bool tracker)
     // Write current tap state to memory mapped file
     if (tracker)
     {
-        *sharedAddr = curState;
+        *(struct tap_state*)tgm_mm_getMapPointer() = curState;
     }
 }

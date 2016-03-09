@@ -71,6 +71,7 @@ EMUOBJS = \
 	$(EMUOBJ)/sound.o \
 	$(EMUOBJ)/state.o \
 	$(EMUOBJ)/streams.o \
+	$(EMUOBJ)/tgm_memorymap.o \
 	$(EMUOBJ)/tgmtracker.o \
 	$(EMUOBJ)/tgmj_handler.o \
 	$(EMUOBJ)/tgm2p_handler.o \

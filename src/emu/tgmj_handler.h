@@ -12,7 +12,7 @@ struct tgmj_state
 
 typedef struct running_machine running_machine;
 
-void tgmj_create_mmap();
+void tgmj_create_mmap()
 void tgmj_destroy_mmap();
 
 void tgmj_setAddressSpace(running_machine* machine);

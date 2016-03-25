@@ -125,6 +125,41 @@ enum tap_game_mode
     TAP_MODE_DEATH_VERSUS   = 4104
 };
 
+const char* getModeName(int gameMode)
+{
+    switch (gameMode)
+    {
+    case TAP_MODE_NULL:
+        return "NULL";
+    case TAP_MODE_NORMAL:
+        return "Normal";
+    case TAP_MODE_MASTER:
+        return "Master";
+    case TAP_MODE_DOUBLES:
+        return "Doubles";
+    case TAP_MODE_NORMAL_VERSUS:
+        return "Normal Versus";
+    case TAP_MODE_MASTER_VERSUS:
+        return "Master Versus";
+    case TAP_MODE_MASTER_CREDITS:
+        return "Master Credits";
+    case TAP_MODE_TGMPLUS:
+        return "TGM+";
+    case TAP_MODE_TGMPLUS_VERSUS:
+        return "TGM+ Versus";
+    case TAP_MODE_MASTER_ITEM:
+        return "Master Item";
+    case TAP_MODE_TGMPLUS_ITEM:
+        return "TGM+ Item";
+    case TAP_MODE_DEATH:
+        return "Death";
+    case TAP_MODE_DEATH_VERSUS:
+        return "Death Versus";
+    default:
+        return "??? Mode";
+    }
+}
+
 bool testMasterConditions(char flags)
 {
     return
@@ -225,77 +260,73 @@ void readState(const address_space* space, struct tap_state* state)
 
 void pushStateToList(struct tap_state* list, size_t* listSize, struct tap_state* state)
 {
-    state->tetromino = TapToFumenMapping[state->tetromino];
-
-    fixTapCoordinates(state);
+    /* state->tetromino = TapToFumenMapping[state->tetromino]; */
+    /* fixTapCoordinates(state); */
 
     list[*listSize] = *state;
     (*listSize)++;
 }
 
 // First Demo: Two simultaneous single player games.
-static const size_t demo01_length = 17;
+static const size_t demo01_length = 16;
 static struct tap_state demo01[] =
 {
-    { 0, 9, 0,  0,   27, 6, 1, 2, 2, 1, 0, 0 },
-    { 0, 9, 0,  1,   76, 5, 4, 2, 2, 1, 0, 0 },
-    { 0, 9, 0,  2,  138, 3, 6, 3, 0, 1, 0, 0 },
-    { 0, 9, 0,  3,  227, 2, 2, 3, 2, 1, 0, 0 },
-    { 0, 9, 0,  4,  292, 7, 2, 5, 0, 1, 0, 0 },
-    { 0, 9, 0,  5,  385, 6, 7, 4, 0, 1, 0, 0 },
-    { 0, 9, 0,  6,  439, 5, 5, 4, 3, 1, 0, 0 },
-    { 0, 9, 0,  7,  492, 4, 0, 5, 1, 1, 0, 0 },
-    { 0, 9, 0,  8,  544, 1, 9, 4, 3, 1, 0, 0 },
-    { 0, 9, 0, 11,  636, 7, 4, 4, 1, 1, 0, 0 },
-    { 0, 9, 0, 12,  693, 3, 6, 4, 0, 1, 0, 0 },
-    { 0, 9, 0, 13,  760, 4, 0, 5, 1, 1, 0, 0 },
-    { 0, 9, 0, 14,  828, 2, 6, 5, 0, 1, 0, 0 },
-    { 0, 9, 0, 15,  884, 1, 8, 4, 1, 1, 0, 0 },
-    { 0, 9, 0, 18,  970, 5, 4, 4, 1, 1, 0, 0 },
-    { 0, 9, 0, 19, 1036, 6, 2, 3, 1, 1, 0, 0 },
-    { 0, 9, 0, 19, 1061, 6, 2, 3, 1, 1, 0, 0 },
+    { 2, 0, 0, 0, 26, 5, 1, 3, 2, 48, 0, 2 },
+    { 2, 0, 0, 1, 75, 8, 4, 3, 2, 48, 0, 2 },
+    { 2, 0, 0, 2, 137, 7, 6, 3, 0, 48, 0, 2 },
+    { 2, 0, 0, 3, 226, 6, 2, 4, 2, 48, 0, 2 },
+    { 2, 0, 0, 4, 291, 4, 2, 5, 0, 48, 0, 2 },
+    { 2, 0, 0, 5, 384, 5, 7, 4, 0, 48, 0, 2 },
+    { 2, 0, 0, 6, 438, 8, 5, 4, 3, 48, 0, 2 },
+    { 2, 0, 0, 7, 491, 3, 0, 5, 1, 48, 0, 2 },
+    { 2, 0, 0, 8, 542, 2, 8, 4, 3, 48, 0, 2 },
+    { 2, 0, 20, 11, 635, 4, 4, 4, 1, 48, 0, 2 },
+    { 2, 0, 20, 12, 692, 7, 6, 4, 0, 48, 0, 2 },
+    { 2, 0, 20, 13, 759, 3, 0, 5, 1, 48, 0, 2 },
+    { 2, 0, 20, 14, 827, 6, 6, 5, 0, 48, 0, 2 },
+    { 2, 0, 19, 15, 883, 2, 7, 4, 1, 48, 0, 2 },
+    { 2, 0, 39, 18, 969, 8, 4, 4, 1, 48, 0, 2 },
+    { 2, 0, 39, 19, 1035, 5, 2, 3, 1, 48, 0, 2 }
 };
 
 // Second Demo: Vs Mode.
-static const size_t demo02_length = 15;
+static const size_t demo02_length = 14;
 static struct tap_state demo02[] =
 {
-    { 0, 9, 0,  0, 9553, 2, 1, 2, 2, 1, 0, 0 },
-    { 0, 9, 0,  1, 9492, 6, 4, 2, 2, 1, 0, 0 },
-    { 0, 9, 0,  2, 9443, 1, 0, 5, 3, 1, 0, 0 },
-    { 0, 9, 0,  3, 9395, 7, 4, 4, 1, 1, 0, 0 },
-    { 0, 9, 0,  4, 9325, 4, 1, 4, 1, 1, 0, 0 },
-    { 0, 9, 0,  5, 9264, 5, 1, 6, 1, 1, 0, 0 },
-    { 0, 9, 0,  6, 9183, 3, 6, 3, 0, 1, 0, 0 },
-    { 0, 9, 0,  7, 9124, 2, 6, 4, 0, 1, 0, 0 },
-    { 0, 9, 0,  8, 9074, 6, 8, 3, 1, 1, 0, 0 },
-    { 0, 9, 0, 10, 8975, 1, 5, 4, 0, 1, 0, 0 },
-    { 0, 9, 0, 11, 8890, 4, 3, 9, 0, 1, 0, 0 },
-    { 0, 9, 0, 12, 8804, 3, 5, 9, 0, 1, 0, 0 },
-    { 0, 9, 0, 13, 8753, 7, 9, 7, 3, 1, 0, 0 },
-    { 0, 9, 0, 16, 8666, 5, 0, 8, 1, 1, 0, 0 },
-    { 0, 9, 0, 17, 8617, 2, 5, 8, 0, 1, 0, 0 },
+    { 2, 0, 0, 0, 9554, 6, 1, 3, 2, 48, 0, 10 },
+    { 2, 0, 0, 1, 9493, 5, 4, 3, 2, 48, 0, 10 },
+    { 2, 0, 0, 2, 9444, 2, -1, 5, 3, 48, 0, 10 },
+    { 2, 0, 0, 3, 9396, 4, 4, 4, 1, 48, 0, 10 },
+    { 2, 0, 0, 4, 9326, 3, 1, 4, 1, 48, 0, 10 },
+    { 2, 0, 0, 5, 9265, 8, 1, 6, 1, 48, 0, 10 },
+    { 2, 0, 0, 6, 9184, 7, 6, 3, 0, 48, 0, 10 },
+    { 2, 0, 0, 7, 9125, 6, 6, 4, 0, 48, 0, 10 },
+    { 2, 0, 0, 8, 9075, 5, 8, 3, 1, 48, 0, 10 },
+    { 2, 0, 10, 10, 8976, 2, 5, 4, 0, 48, 0, 10 },
+    { 2, 0, 10, 11, 8891, 3, 3, 9, 0, 48, 0, 10 },
+    { 2, 0, 10, 12, 8805, 7, 5, 9, 0, 48, 0, 10 },
+    { 2, 0, 9, 13, 8754, 4, 9, 7, 3, 48, 0, 10 },
+    { 2, 0, 29, 16, 8667, 8, 0, 8, 1, 48, 0, 10 }
 };
 
 // Third Demo: Doubles Mode.
-static const size_t demo03_length = 15;
+static const size_t demo03_length = 14;
 static struct tap_state demo03[] =
 {
-    { 0, 9, 0,  0,   33, 6, 1, 2, 2, 1, 0, 0 },
-    { 0, 9, 0,  1,  129, 5, 4, 2, 2, 1, 0, 0 },
-    { 0, 9, 0,  2,  215, 2, 2, 3, 2, 1, 0, 0 },
-    { 0, 9, 0,  3,  271, 3, 0, 5, 0, 1, 0, 0 },
-    { 0, 9, 0,  4,  347, 1, 6, 4, 1, 1, 0, 0 },
-    { 0, 9, 0,  5,  443, 4, 2, 5, 1, 1, 0, 0 },
-    { 0, 9, 0,  6,  513, 6, 1, 5, 2, 1, 0, 0 },
-    { 0, 9, 0,  7,  590, 2, 2, 6, 2, 1, 0, 0 },
-    { 0, 9, 0,  8,  657, 5, 5, 3, 3, 1, 0, 0 },
-    { 0, 9, 0, 11,  755, 7, 2, 6, 0, 1, 0, 0 },
-    { 0, 9, 0, 12,  812, 4, 0, 5, 1, 1, 0, 0 },
-    { 0, 9, 0, 13,  904, 1, 5, 6, 1, 1, 0, 0 },
-    { 0, 9, 0, 14,  990, 3, 2, 7, 0, 1, 0, 0 },
-    { 0, 9, 0, 15, 1051, 5, 0, 7, 1, 1, 0, 0 },
-    { 0, 9, 0, 15, 1061, 5, 0, 7, 1, 1, 0, 0 },
+    { 2, 0, 0, 0, 32, 5, 1, 3, 2, 48, 0, 4 },
+    { 2, 0, 0, 1, 128, 8, 4, 3, 2, 48, 0, 4 },
+    { 2, 0, 0, 2, 214, 6, 2, 4, 2, 48, 0, 4 },
+    { 2, 0, 0, 3, 270, 7, 0, 5, 0, 48, 0, 4 },
+    { 2, 0, 0, 4, 346, 2, 5, 4, 1, 48, 0, 4 },
+    { 2, 0, 0, 5, 442, 3, 2, 5, 1, 48, 0, 4 },
+    { 2, 0, 0, 6, 512, 5, 1, 6, 2, 48, 0, 4 },
+    { 2, 0, 0, 7, 589, 6, 2, 7, 2, 48, 0, 4 },
+    { 2, 0, 0, 8, 656, 8, 5, 3, 3, 48, 0, 4 },
+    { 2, 0, 20, 11, 754, 4, 2, 6, 0, 48, 0, 4 },
+    { 2, 0, 20, 12, 811, 3, 0, 5, 1, 48, 0, 4 },
+    { 2, 0, 20, 13, 903, 2, 4, 6, 1, 48, 0, 4 },
+    { 2, 0, 19, 14, 989, 7, 2, 7, 0, 48, 0, 4 },
+    { 2, 0, 19, 15, 1050, 8, 0, 7, 1, 48, 0, 4 }
 };
 
 bool testDemoState(struct tap_state* stateList, size_t listSize, struct tap_state* demo, size_t demoSize)
@@ -305,13 +336,27 @@ bool testDemoState(struct tap_state* stateList, size_t listSize, struct tap_stat
         return false;
     }
 
-    for (size_t i = 0; i < listSize && i < demoSize; ++i)
+    int misses = 0;
+
+    size_t sCount = 0;
+    size_t dCount = 0;
+    for (; sCount < listSize && dCount < demoSize; ++dCount)
     {
-        if (stateList[i].tetromino != demo[i].tetromino &&
-            stateList[i].xcoord != demo[i].xcoord &&
-            stateList[i].ycoord != demo[i].ycoord)
+        if (stateList[sCount].gameMode  != demo[dCount].gameMode  ||
+            stateList[sCount].tetromino != demo[dCount].tetromino ||
+            stateList[sCount].xcoord    != demo[dCount].xcoord    ||
+            stateList[sCount].ycoord    != demo[dCount].ycoord)
         {
-            return false;
+            misses++;
+
+            if (misses >= 6)
+            {
+                return false;
+            }
+        }
+        else
+        {
+            sCount++;
         }
     }
     return true;
@@ -345,9 +390,9 @@ void writePlacementLog()
     }
     else
     {
-        // Push the killing piece. We must use the previous state
-        // since, upon death, TAP clears some data.
-        pushStateToList(stateList, &stateListSize, &prevState);
+        /* // Push the killing piece. We must use the previous state */
+        /* // since, upon death, TAP clears some data. */
+        /* pushStateToList(stateList, &stateListSize, &prevState); */
 
         // Create fumen directory if it doesn't exist.
         createDir("fumen/");
@@ -365,7 +410,7 @@ void writePlacementLog()
         createDir(directory);
 
         strftime(timebuf, 32, "%H-%M-%S", timeInfo);
-        snprintf(filename, 80, "%s/%s_Lvl%d.txt", directory, timebuf, stateList[stateListSize - 1].level);
+        snprintf(filename, 80, "%s/%s_Lvl%d.txt", directory, timebuf, prevState.level);
 
         FILE* file = fopen(filename, "w");
 
@@ -373,13 +418,13 @@ void writePlacementLog()
         {
             printf("Writing data to %s.\n", filename);
 
-            if (prevState.gameMode == TAP_MODE_MASTER)
-                fprintf(file, "master\n");
-            else if (prevState.gameMode == TAP_MODE_DEATH)
-                fprintf(file, "death\n");
+            fprintf(file, "%s\n", getModeName(prevState.gameMode));
 
             for (size_t i = 0; i < stateListSize; ++i)
             {
+                stateList[i].tetromino = TapToFumenMapping[stateList[i].tetromino];
+                fixTapCoordinates(&stateList[i]);
+
                 struct tap_state* current = &stateList[i];
                 fprintf(file, "%s,%d,%d,%d,%d,%d,%d,%d,%d\n",
                         GRADE_DISPLAY[(int)current->grade],

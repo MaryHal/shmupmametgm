@@ -230,7 +230,7 @@ function encode()
             continue;
         }
 
-        if (line === "master" || line === "death")
+        if (line === "Master" || line === "Death")
         {
             mode = line;
             continue;

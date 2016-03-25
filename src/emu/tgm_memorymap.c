@@ -1,5 +1,7 @@
 #include "tgm_memorymap.h"
 
+#if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))
+
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -63,3 +65,20 @@ void* tgm_mm_getMapPointer()
 {
     return sharedMem;
 }
+
+#else
+
+void tgm_mm_create(size_t dataSize)
+{
+}
+
+void tgm_mm_destroy()
+{
+}
+
+void* tgm_mm_getMapPointer()
+{
+    return NULL;
+}
+
+#endif

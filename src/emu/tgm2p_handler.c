@@ -481,6 +481,8 @@ void tgm2p_run(bool fumen, bool tracker)
     // Write current tap state to memory mapped file
     if (tracker)
     {
-        *(struct tap_state*)tgm_mm_getMapPointer() = curState;
+        struct tap_state* mmapPtr = (struct tap_state*)tgm_mm_getMapPointer();
+        if (mmapPtr)
+            *mmapPtr = curState;
     }
 }

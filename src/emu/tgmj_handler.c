@@ -6,13 +6,6 @@
 #include "emu.h"
 #include "debug/express.h"
 
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-
-#include <sys/mman.h>
-#include <fcntl.h>
-
 const offs_t LEVEL_ADDR = 0x0017699A;
 const offs_t TIMER_ADDR = 0x0017698C;
 
@@ -47,6 +40,9 @@ void tgmj_run(bool fumen, bool tracker)
         readState(space, &curState);
 
         // Write current state to memory map
-        *(struct tgmj_state*)tgm_mm_getMapPointer() = curState;
+        struct tgmj_state* mmapPtr = (struct tgmj_state*)tgm_mm_getMapPointer(); 
+
+	if (mmapPtr)
+            *mmapPtr = curState;
     }
 }

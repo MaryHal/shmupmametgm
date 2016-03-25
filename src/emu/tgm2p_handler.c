@@ -390,9 +390,9 @@ void writePlacementLog()
     }
     else
     {
-        /* // Push the killing piece. We must use the previous state */
-        /* // since, upon death, TAP clears some data. */
-        /* pushStateToList(stateList, &stateListSize, &prevState); */
+        // Push the killing piece. We must use the previous state
+        // since, upon death, TAP clears some data.
+        pushStateToList(stateList, &stateListSize, &prevState);
 
         // Create fumen directory if it doesn't exist.
         createDir("fumen/");

@@ -230,13 +230,13 @@ function encode()
             continue;
         }
 
-        if (line === "Master" || line === "Death")
+        var data = line.split(",");
+
+        if (data.length === 1)
         {
-            mode = line;
+            mode = data[0];
             continue;
         }
-
-        var data = line.split(",");
 
         if (data.length < 7)
         {
@@ -266,7 +266,7 @@ function encode()
             frame++;
 
             // Reset the field in master mode.
-            if (mode === "master")
+            if (mode === "Master")
             {
                 for(e=0;e<fldblks;e++) f[e]=0;
             }
@@ -279,7 +279,14 @@ function encode()
         p[2] = 240 - ycoord * 10 + xcoord;
 
         var comment = "";
-        if (mode === "master")
+
+        // First frame, add mode name to comment.
+        if (frame === 0)
+        {
+            comment += mode + ' ';
+        }
+
+        if (mode === "Master")
         {
             comment += mroll ? '~' : '';
             comment += grade;

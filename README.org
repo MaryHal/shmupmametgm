@@ -1,9 +1,13 @@
-* shmupmametgm
-#+BEGIN_QUOTE
-This is a modified version of MAME with modifications in Psikyo SH-2 emulation (tgm2, tgm2p) that eliminate one extra frame of lag compared to vanilla MAME.
-#+END_QUOTE
-
-This version correctly configures MAME to use 4-way stick emulation for tgm2p and also backports a framerate fix so tgm2p should run at the correct ~61.681 fps.
+* shmupmametgm :TOC_5_gh:
+   - [[#building][Building]]
+   - [[#tetromino-logger][Tetromino Logger]]
+     - [[#fumenizer][Fumenizer]]
+       - [[#enabling-fumenizer][Enabling fumenizer]]
+     - [[#taptracker][TapTracker]]
+       - [[#enabling-taptracker][Enabling taptracker]]
+       - [[#using-taptracker-data][Using TapTracker data]]
+         - [[#in-c][In C]]
+         - [[#in-python][In Python]]
 
 ** Building
 

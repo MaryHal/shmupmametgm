@@ -108,6 +108,7 @@ enum tap_mroll_flags
     M_SUCCESS  = 127,
 };
 
+// Non-exhaustive list of game modes
 enum tap_game_mode
 {
     TAP_MODE_NULL           = 0,
@@ -117,47 +118,114 @@ enum tap_game_mode
     TAP_MODE_NORMAL_VERSUS  = 9,
     TAP_MODE_MASTER_VERSUS  = 10,
     TAP_MODE_MASTER_CREDITS = 18,
+    TAP_MODE_NORMAL_20G     = 33,
+    TAP_MODE_MASTER_20G     = 34,
+    TAP_MODE_DOUBLES_20G    = 36,
     TAP_MODE_TGMPLUS        = 128,
     TAP_MODE_TGMPLUS_VERSUS = 136,
+    TAP_MODE_TGMPLUS_20G    = 160,
     TAP_MODE_MASTER_ITEM    = 514,
     TAP_MODE_TGMPLUS_ITEM   = 640,
     TAP_MODE_DEATH          = 4096,
-    TAP_MODE_DEATH_VERSUS   = 4104
+    TAP_MODE_DEATH_VERSUS   = 4104,
+    TAP_MODE_DEATH_20G      = 4128
 };
 
-const char* getModeName(int gameMode)
+#define MODE_VERSUS_MASK  8
+#define MODE_CREDITS_MASK 16
+#define MODE_20G_MASK     32
+#define MODE_BIG_MASK     64
+#define MODE_ITEM_MASK    512
+#define MODE_TLS_MASK     1024
+
+bool isVersusMode(int gameMode)
 {
-    switch (gameMode)
+    return gameMode & MODE_VERSUS_MASK;
+}
+
+bool is20GMode(int gameMode)
+{
+    return gameMode & MODE_20G_MASK;
+}
+
+bool isBigMode(int gameMode)
+{
+    return gameMode & MODE_BIG_MASK;
+}
+
+bool isItemMode(int gameMode)
+{
+    return gameMode & MODE_ITEM_MASK;
+}
+
+bool isTLSMode(int gameMode)
+{
+    return gameMode & MODE_TLS_MASK;
+}
+
+int getBaseMode(int gameMode)
+{
+    int megaModeMask =
+        MODE_VERSUS_MASK  |
+        MODE_CREDITS_MASK |
+        MODE_20G_MASK     |
+        MODE_BIG_MASK     |
+        MODE_ITEM_MASK    |
+        MODE_TLS_MASK;
+
+    return gameMode & ~megaModeMask;
+}
+
+void getModeName(char* buffer, size_t bufferLength, int gameMode)
+{
+    char modifierMode[16] = "";
+    if (isVersusMode(gameMode))
+    {
+        strcpy(modifierMode, "Versus ");
+    }
+    else if (is20GMode(gameMode))
+    {
+        strcpy(modifierMode, "20G ");
+    }
+    else if (isBigMode(gameMode))
+    {
+        strcpy(modifierMode, "Big ");
+    }
+    else if (isItemMode(gameMode))
+    {
+        strcpy(modifierMode, "Item ");
+    }
+    else if (isTLSMode(gameMode))
+    {
+        strcpy(modifierMode, "TLS ");
+    }
+
+    char baseMode[16] = "";
+    switch (getBaseMode(gameMode))
     {
     case TAP_MODE_NULL:
-        return "NULL";
+        strcpy(baseMode, "NULL");
+        break;
     case TAP_MODE_NORMAL:
-        return "Normal";
+        strcpy(baseMode, "Normal");
+        break;
     case TAP_MODE_MASTER:
-        return "Master";
+        strcpy(baseMode, "Master");
+        break;
     case TAP_MODE_DOUBLES:
-        return "Doubles";
-    case TAP_MODE_NORMAL_VERSUS:
-        return "Normal Versus";
-    case TAP_MODE_MASTER_VERSUS:
-        return "Master Versus";
-    case TAP_MODE_MASTER_CREDITS:
-        return "Master Credits";
+        strcpy(baseMode, "Doubles");
+        break;
     case TAP_MODE_TGMPLUS:
-        return "TGM+";
-    case TAP_MODE_TGMPLUS_VERSUS:
-        return "TGM+ Versus";
-    case TAP_MODE_MASTER_ITEM:
-        return "Master Item";
-    case TAP_MODE_TGMPLUS_ITEM:
-        return "TGM+ Item";
+        strcpy(baseMode, "TGM+");
+        break;
     case TAP_MODE_DEATH:
-        return "Death";
-    case TAP_MODE_DEATH_VERSUS:
-        return "Death Versus";
+        strcpy(baseMode, "Death");
+        break;
     default:
-        return "??? Mode";
+        strcpy(baseMode, "???");
     }
+
+    snprintf(buffer, bufferLength, "%s%s", modifierMode, baseMode);
 }
 
 bool testMasterConditions(char flags)
@@ -376,6 +444,8 @@ static const size_t MAX_TAP_STATES = 1300; // What a nice number
 static struct tap_state stateList[MAX_TAP_STATES];
 static size_t stateListSize = 0;
 
+static int gameModeAtStart = 0;
+
 static const address_space* space = NULL;
 
 void writePlacementLog()
@@ -418,7 +488,9 @@ void writePlacementLog()
         {
             printf("Writing data to %s.\n", filename);
 
-            fprintf(file, "%s\n", getModeName(prevState.gameMode));
+            char modeName[32];
+            getModeName(modeName, 32, gameModeAtStart);
+            fprintf(file, "%s\n", modeName);
 
             for (size_t i = 0; i < stateListSize; ++i)
             {
@@ -465,6 +537,11 @@ void tgm2p_run(bool fumen, bool tracker)
     // Log placements
     if (fumen)
     {
+        // Game has begun, save the game mode since tgm2p removes mode
+        // modifiers when the game ends.
+        if (!inPlayingState(prevState.state) && inPlayingState(curState.state))
+            gameModeAtStart = curState.gameMode;
+
         // Piece is locked in
         if (inPlayingState(curState.state) && prevState.state == TAP_ACTIVE && curState.state == TAP_LOCKING)
         {

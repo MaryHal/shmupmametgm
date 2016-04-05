@@ -98,14 +98,21 @@ enum tap_internal_state
 
 enum tap_mroll_flags
 {
-    M_FAIL_1   = 17,
-    M_FAIL_2   = 19,
-    M_FAIL_END = 31,
+    M_FAIL_BOTH_1   = 0,   // 00000000 Failing (both) at 100
+    M_FAIL_TETRIS_1 = 17,  // 00010001 Failing (tetris) at 100
+    M_FAIL_TIME_1   = 32,  // 00100000 Failing (time) at 100
 
-    M_NEUTRAL  = 48,
-    M_PASS_1   = 49,
-    M_PASS_2   = 51,
-    M_SUCCESS  = 127,
+    M_FAIL_BOTH_2   = 1,   // 00000001 Failing (both) between 100 - 500
+    M_FAIL_TETRIS_2 = 17,  // 00010001 Failing (tetris) between 100 - 500
+    M_FAIL_TIME_2   = 33,  // 00010001 Failing (time) between 100 - 500
+
+    M_FAIL_3        = 19,  // 00010011 Failing at 500
+    M_FAIL_END      = 31,  // 00011111 Failing at 999
+
+    M_NEUTRAL       = 48,  // 00110000 Default State
+    M_PASS_1        = 49,  // 00110001 Passing at 100
+    M_PASS_2        = 51,  // 00110011 Passing at 500
+    M_SUCCESS       = 127, // 01111111 Passing at 999
 };
 
 #define MROLL_PASS_MASK (1 << 5)
@@ -232,7 +239,11 @@ void getModeName(char* buffer, size_t bufferLength, int gameMode)
 
 bool testMasterConditions(char flags)
 {
-    return flags & MROLL_PASS_MASK;
+    return
+        flags == M_NEUTRAL ||
+        flags == M_PASS_1  ||
+        flags == M_PASS_2  ||
+        flags == M_SUCCESS;
 }
 
 bool inPlayingState(char state)
@@ -530,7 +541,7 @@ void tgm2p_run(bool fumen, bool tracker)
     prevState = curState;
     readState(space, &curState);
 
-    /* printf("%d\n", memory_read_byte(space, STATE_ADDR)); */
+    /* printf("%d\n", curState.mrollFlags); */
 
     // Log placements
     if (fumen)

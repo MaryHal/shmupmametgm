@@ -115,6 +115,8 @@ enum tap_mroll_flags
     M_SUCCESS       = 127, // 01111111 Passing at 999
 };
 
+// Considering how you can fail on time in the first section with a value of 32,
+// this doesn't seem to work 100%
 #define MROLL_PASS_MASK (1 << 5)
 
 // Non-exhaustive list of game modes

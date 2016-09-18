@@ -3,8 +3,17 @@
 #include "tgmtracker.h"
 #include "tgm_memorymap.h"
 
+#include "tgm_common.h"
+
 #include "emu.h"
 #include "debug/express.h"
+
+static const int GRADE_COUNT = 19;
+static const char* GRADE_DISPLAY[GRADE_COUNT] =
+{
+    "9", "8", "7", "6", "5", "4", "3", "2", "1",
+    "S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "GM"
+};
 
 enum tgmj_internal_state
 {
@@ -49,9 +58,9 @@ static const offs_t ROTATION_ADDR    = 0x001769D7;  // Current block rotation st
 static const offs_t GAMEMODE_ADDR    = 0x00000000;  // Current game mode
 
 static const address_space* space = NULL;
-struct tgmj_state curState = {0};
+static struct tgm_state curState = {0};
 
-void readState(const address_space* space, struct tgmj_state* state)
+static void readState(const address_space* space, struct tgm_state* state)
 {
     state->state     = memory_read_byte(space, STATE_ADDR);
     state->level     = memory_read_word(space, LEVEL_ADDR);
@@ -63,8 +72,6 @@ void readState(const address_space* space, struct tgmj_state* state)
     state->xcoord    = memory_read_word(space, CURRX_ADDR);
     state->ycoord    = memory_read_word(space, CURRY_ADDR);
     state->rotation  = memory_read_word(space, ROTATION_ADDR);
-
-    printf("%d %d %d %d %d %d %d %d\n", state->state, state->level, state->grade, state->tetromino, memory_read_byte(space, NEXT_ADDR), state->xcoord, state->ycoord, state->rotation);
 }
 
 void tgmj_setAddressSpace(running_machine* machine)
@@ -74,7 +81,7 @@ void tgmj_setAddressSpace(running_machine* machine)
 
 void tgmj_create_mmap()
 {
-    tgm_mm_create(sizeof(struct tgmj_state));
+    tgm_mm_create(sizeof(struct tgm_state));
 }
 
 void tgmj_destroy_mmap()
@@ -88,10 +95,10 @@ void tgmj_run(bool fumen, bool tracker)
     {
         readState(space, &curState);
 
-        /* // Write current state to memory map */
-        /* struct tgmj_state* mmapPtr = (struct tgmj_state*)tgm_mm_getMapPointer();  */
+        // Write current state to memory map
+        struct tgm_state* mmapPtr = (struct tgm_state*)tgm_mm_getMapPointer();
 
-	/* if (mmapPtr) */
-        /*     *mmapPtr = curState; */
+	if (mmapPtr)
+            *mmapPtr = curState;
     }
 }

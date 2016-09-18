@@ -3,6 +3,8 @@
 #include "tgmj_handler.h"
 #include "tgm2p_handler.h"
 
+#include "tgm_memorymap.h"
+
 #include "emu.h"
 
 const address_space* tt_setAddressSpace(running_machine* machine)

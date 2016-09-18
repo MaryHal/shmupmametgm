@@ -255,22 +255,23 @@ bool inPlayingState(char state)
     return state != TAP_NONE && state != TAP_IDLE && state != TAP_STARTUP;
 }
 
-const offs_t STATE_ADDR       = 0x06064BF5;  // p1 State
-const offs_t LEVEL_ADDR       = 0x06064BBA;  // p1 Level
-const offs_t TIMER_ADDR       = 0x06064BEA;  // p1 Timer
-const offs_t GRADE_ADDR       = 0x06079378;  // Master-mode internal grade
-const offs_t GRADEPOINTS_ADDR = 0x06079379;  // Master-mode internal grade points
-const offs_t MROLLFLAGS_ADDR  = 0x06064BD0;  // M-Roll flags
-const offs_t INROLL_ADDR      = 0x06066845;  // p1 in-credit-roll
-const offs_t SECTION_ADDR     = 0x06064C25;  // p1 section index
+static const offs_t STATE_ADDR       = 0x06064BF5;  // p1 State
+static const offs_t LEVEL_ADDR       = 0x06064BBA;  // p1 Level
+static const offs_t TIMER_ADDR       = 0x06064BEA;  // p1 Timer
 
-const offs_t TETRO_ADDR       = 0x06064BF6;  // Current block
-const offs_t NEXT_ADDR        = 0x06064BF8;  // Next block
-const offs_t CURRX_ADDR       = 0x06064BFC;  // Current block X position
-const offs_t CURRY_ADDR       = 0x06064C00;  // Current block Y position
-const offs_t ROTATION_ADDR    = 0x06064BFA;  // Current block rotation state
+static const offs_t GRADE_ADDR       = 0x06079378;  // Master-mode internal grade
+static const offs_t GRADEPOINTS_ADDR = 0x06079379;  // Master-mode internal grade points
+static const offs_t MROLLFLAGS_ADDR  = 0x06064BD0;  // M-Roll flags
+static const offs_t INROLL_ADDR      = 0x06066845;  // p1 in-credit-roll
+static const offs_t SECTION_ADDR     = 0x06064C25;  // p1 section index
 
-const offs_t GAMEMODE_ADDR    = 0x06064BA4;  // Current game mode
+static const offs_t TETRO_ADDR       = 0x06064BF6;  // Current block
+static const offs_t NEXT_ADDR        = 0x06064BF8;  // Next block
+static const offs_t CURRX_ADDR       = 0x06064BFC;  // Current block X position
+static const offs_t CURRY_ADDR       = 0x06064C00;  // Current block Y position
+static const offs_t ROTATION_ADDR    = 0x06064BFA;  // Current block rotation state
+
+static const offs_t GAMEMODE_ADDR    = 0x06064BA4;  // Current game mode
 
 // TGM2+ indexes its pieces slightly differently to fumen, so when encoding a
 // diagram we must convert the indices:

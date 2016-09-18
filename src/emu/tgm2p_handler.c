@@ -3,6 +3,8 @@
 #include "tgmtracker.h"
 #include "tgm_memorymap.h"
 
+#include "tgm_common.h"
+
 #include <stdlib.h>
 #include <time.h>
 
@@ -24,7 +26,7 @@ int createDir(const char* path)
 
 void tgm2p_create_mmap()
 {
-    tgm_mm_create(sizeof(struct tap_state));
+    tgm_mm_create(sizeof(struct tgm_state));
 }
 
 void tgm2p_destroy_mmap()
@@ -37,7 +39,7 @@ void tgm2p_destroy_mmap()
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-static struct tap_state* sharedAddr = NULL;
+static struct tgm_state* sharedAddr = NULL;
 
 int createDir(const char* path)
 {
@@ -73,8 +75,8 @@ void tgm2p_destroy_mmap()
 
 #endif
 
-const int GRADE_COUNT = 32;
-const char* GRADE_DISPLAY[GRADE_COUNT] =
+static const int GRADE_COUNT = 32;
+static const char* GRADE_DISPLAY[GRADE_COUNT] =
 {
     "9", "8", "7", "6", "5", "4-", "4+", "3-", "3+", "2-", "2", "2+", "1-",
     "1", "1+", "S1-", "S1", "S1+", "S2", "S3", "S4-", "S4", "S4+", "S5-",
@@ -149,32 +151,32 @@ enum tap_game_mode
 #define MODE_ITEM_MASK    (1 << 9)
 #define MODE_TLS_MASK     (1 << 10)
 
-bool isVersusMode(int gameMode)
+static bool isVersusMode(int gameMode)
 {
     return gameMode & MODE_VERSUS_MASK;
 }
 
-bool is20GMode(int gameMode)
+static bool is20GMode(int gameMode)
 {
     return gameMode & MODE_20G_MASK;
 }
 
-bool isBigMode(int gameMode)
+static bool isBigMode(int gameMode)
 {
     return gameMode & MODE_BIG_MASK;
 }
 
-bool isItemMode(int gameMode)
+static bool isItemMode(int gameMode)
 {
     return gameMode & MODE_ITEM_MASK;
 }
 
-bool isTLSMode(int gameMode)
+static bool isTLSMode(int gameMode)
 {
     return gameMode & MODE_TLS_MASK;
 }
 
-int getBaseMode(int gameMode)
+static int getBaseMode(int gameMode)
 {
     int megaModeMask =
         MODE_VERSUS_MASK  |
@@ -187,30 +189,30 @@ int getBaseMode(int gameMode)
     return gameMode & ~megaModeMask;
 }
 
-void getModeName(char* buffer, size_t bufferLength, int gameMode)
+static void getModeName(char* buffer, size_t bufferLength, int gameMode)
 {
     const uint8_t BUF_SIZE = 16;
 
     char modifierMode[BUF_SIZE] = "";
     if (isVersusMode(gameMode))
     {
-        strncpy(modifierMode, "Versus ", BUF_SIZE);
+        strncpy(modifierMode, "Versus_", BUF_SIZE);
     }
     else if (is20GMode(gameMode))
     {
-        strncpy(modifierMode, "20G ", BUF_SIZE);
+        strncpy(modifierMode, "20G_", BUF_SIZE);
     }
     else if (isBigMode(gameMode))
     {
-        strncpy(modifierMode, "Big ", BUF_SIZE);
+        strncpy(modifierMode, "Big_", BUF_SIZE);
     }
     else if (isItemMode(gameMode))
     {
-        strncpy(modifierMode, "Item ", BUF_SIZE);
+        strncpy(modifierMode, "Item_", BUF_SIZE);
     }
     else if (isTLSMode(gameMode))
     {
-        strncpy(modifierMode, "TLS ", BUF_SIZE);
+        strncpy(modifierMode, "TLS_", BUF_SIZE);
     }
 
     char baseMode[BUF_SIZE] = "";
@@ -241,7 +243,7 @@ void getModeName(char* buffer, size_t bufferLength, int gameMode)
     snprintf(buffer, bufferLength, "%s%s", modifierMode, baseMode);
 }
 
-bool testMasterConditions(char flags)
+static bool testMasterConditions(char flags)
 {
     return
         flags == M_NEUTRAL ||
@@ -250,7 +252,7 @@ bool testMasterConditions(char flags)
         flags == M_SUCCESS;
 }
 
-bool inPlayingState(char state)
+static bool inPlayingState(char state)
 {
     return state != TAP_NONE && state != TAP_IDLE && state != TAP_STARTUP;
 }
@@ -273,54 +275,7 @@ static const offs_t ROTATION_ADDR    = 0x06064BFA;  // Current block rotation st
 
 static const offs_t GAMEMODE_ADDR    = 0x06064BA4;  // Current game mode
 
-// TGM2+ indexes its pieces slightly differently to fumen, so when encoding a
-// diagram we must convert the indices:
-// 2 3 4 5 6 7 8 (TAP)
-// I Z S J L O T
-// 1 4 7 6 2 3 5 (Fumen)
-char TapToFumenMapping[9] = { 0, 0, 1, 4, 7, 6, 2, 3, 5 };
-
-// Coordinates from TAP do not align perfectly with fumen's coordinates
-// (depending on tetromino and rotation state).
-void fixTapCoordinates(struct tap_state* tstate)
-{
-    if (tstate->tetromino == 1)
-    {
-        // Fix underflow when I tetromino is in column 1.
-        if (tstate->xcoord > 10)
-        {
-            tstate->xcoord = -1;
-        }
-
-        if (tstate->rotation == 1 || tstate->rotation == 3)
-        {
-            tstate->xcoord += 1;
-        }
-    }
-    else if (tstate->tetromino == 6)
-    {
-        if (tstate->rotation == 2)
-        {
-            tstate->ycoord -= 1;
-        }
-    }
-    else if (tstate->tetromino == 2)
-    {
-        if (tstate->rotation == 2)
-        {
-            tstate->ycoord -= 1;
-        }
-    }
-    else if (tstate->tetromino == 5)
-    {
-        if (tstate->rotation == 2)
-        {
-            tstate->ycoord -= 1;
-        }
-    }
-}
-
-void readState(const address_space* space, struct tap_state* state)
+static void readState(const address_space* space, struct tgm_state* state)
 {
     state->state        = memory_read_byte(space, STATE_ADDR);
     state->grade        = memory_read_byte(space, GRADE_ADDR);
@@ -340,10 +295,10 @@ void readState(const address_space* space, struct tap_state* state)
     state->gameMode = memory_read_word(space, GAMEMODE_ADDR);
 }
 
-void pushStateToList(struct tap_state* list, size_t* listSize, struct tap_state* state)
+static void pushStateToList(struct tgm_state* list, size_t* listSize, struct tgm_state* state)
 {
-    /* state->tetromino = TapToFumenMapping[state->tetromino]; */
-    /* fixTapCoordinates(state); */
+    /* state->tetromino = TgmToFumenMapping[state->tetromino]; */
+    /* TgmToFumenState(state); */
 
     list[*listSize] = *state;
     (*listSize)++;
@@ -351,7 +306,7 @@ void pushStateToList(struct tap_state* list, size_t* listSize, struct tap_state*
 
 // First Demo: Two simultaneous single player games.
 static const size_t demo01_length = 16;
-static struct tap_state demo01[] =
+static struct tgm_state demo01[] =
 {
     { 2, 0, 0, 0, 26, 5, 1, 3, 2, 48, 0, 2 },
     { 2, 0, 0, 1, 75, 8, 4, 3, 2, 48, 0, 2 },
@@ -373,7 +328,7 @@ static struct tap_state demo01[] =
 
 // Second Demo: Vs Mode.
 static const size_t demo02_length = 14;
-static struct tap_state demo02[] =
+static struct tgm_state demo02[] =
 {
     { 2, 0, 0, 0, 9554, 6, 1, 3, 2, 48, 0, 10 },
     { 2, 0, 0, 1, 9493, 5, 4, 3, 2, 48, 0, 10 },
@@ -393,7 +348,7 @@ static struct tap_state demo02[] =
 
 // Third Demo: Doubles Mode.
 static const size_t demo03_length = 14;
-static struct tap_state demo03[] =
+static struct tgm_state demo03[] =
 {
     { 2, 0, 0, 0, 32, 5, 1, 3, 2, 48, 0, 4 },
     { 2, 0, 0, 1, 128, 8, 4, 3, 2, 48, 0, 4 },
@@ -411,7 +366,7 @@ static struct tap_state demo03[] =
     { 2, 0, 19, 15, 1050, 8, 0, 7, 1, 48, 0, 4 }
 };
 
-bool testDemoState(struct tap_state* stateList, size_t listSize, struct tap_state* demo, size_t demoSize)
+static bool testDemoState(struct tgm_state* stateList, size_t listSize, struct tgm_state* demo, size_t demoSize)
 {
     if (listSize > demoSize)
     {
@@ -444,7 +399,7 @@ bool testDemoState(struct tap_state* stateList, size_t listSize, struct tap_stat
     return true;
 }
 
-bool isDemoState(struct tap_state* stateList, size_t listSize)
+static bool isDemoState(struct tgm_state* stateList, size_t listSize)
 {
     return
         testDemoState(stateList, listSize, demo01, demo01_length) ||
@@ -452,17 +407,17 @@ bool isDemoState(struct tap_state* stateList, size_t listSize)
         testDemoState(stateList, listSize, demo03, demo03_length);
 }
 
-static struct tap_state curState = {0}, prevState = {0};
+static struct tgm_state curState = {0}, prevState = {0};
 
-static const size_t MAX_TAP_STATES = 1300; // What a nice number
-static struct tap_state stateList[MAX_TAP_STATES];
+static const size_t MAX_TGM_STATES = 1300; // What a nice number
+static struct tgm_state stateList[MAX_TGM_STATES];
 static size_t stateListSize = 0;
 
 static int gameModeAtStart = 0;
 
 static const address_space* space = NULL;
 
-void writePlacementLog()
+static void writePlacementLog()
 {
     if (stateListSize == 0)
     {
@@ -480,6 +435,7 @@ void writePlacementLog()
 
         // Create fumen directory if it doesn't exist.
         createDir("fumen/");
+        createDir("fumen/tgm2p");
 
         char directory[32];
         char timebuf[32];
@@ -489,12 +445,15 @@ void writePlacementLog()
         time_t rawTime;
         time(&rawTime);
         const struct tm* timeInfo = localtime(&rawTime);
-        strftime(directory, 32, "fumen/%Y-%m-%d", timeInfo);
+        strftime(directory, 32, "fumen/tgm2p/%Y-%m-%d", timeInfo);
+
+        char modeName[32];
+        getModeName(modeName, 32, gameModeAtStart);
 
         createDir(directory);
 
         strftime(timebuf, 32, "%H-%M-%S", timeInfo);
-        snprintf(filename, 80, "%s/%s_Lvl%d.txt", directory, timebuf, prevState.level);
+        snprintf(filename, 80, "%s/%s_%s_Lvl%d.txt", directory, timebuf, modeName, prevState.level);
 
         FILE* file = fopen(filename, "w");
 
@@ -502,16 +461,14 @@ void writePlacementLog()
         {
             printf("Writing data to %s.\n", filename);
 
-            char modeName[32];
-            getModeName(modeName, 32, gameModeAtStart);
             fprintf(file, "%s\n", modeName);
 
             for (size_t i = 0; i < stateListSize; ++i)
             {
-                stateList[i].tetromino = TapToFumenMapping[stateList[i].tetromino];
-                fixTapCoordinates(&stateList[i]);
+                stateList[i].tetromino = TgmToFumenMapping[stateList[i].tetromino];
+                TgmToFumenState(&stateList[i]);
 
-                struct tap_state* current = &stateList[i];
+                struct tgm_state* current = &stateList[i];
                 fprintf(file, "%s,%d,%d,%d,%d,%d,%d,%d,%d\n",
                         GRADE_DISPLAY[(int)current->grade],
                         current->level,
@@ -546,8 +503,6 @@ void tgm2p_run(bool fumen, bool tracker)
     prevState = curState;
     readState(space, &curState);
 
-    /* printf("%d\n", curState.mrollFlags); */
-
     // Log placements
     if (fumen)
     {
@@ -572,7 +527,7 @@ void tgm2p_run(bool fumen, bool tracker)
     // Write current tap state to memory mapped file
     if (tracker)
     {
-        struct tap_state* mmapPtr = (struct tap_state*)tgm_mm_getMapPointer();
+        struct tgm_state* mmapPtr = (struct tgm_state*)tgm_mm_getMapPointer();
         if (mmapPtr)
             *mmapPtr = curState;
     }

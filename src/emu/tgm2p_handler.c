@@ -189,51 +189,53 @@ int getBaseMode(int gameMode)
 
 void getModeName(char* buffer, size_t bufferLength, int gameMode)
 {
-    char modifierMode[16] = "";
+    const uint8_t BUF_SIZE = 16;
+
+    char modifierMode[BUF_SIZE] = "";
     if (isVersusMode(gameMode))
     {
-        strcpy(modifierMode, "Versus ");
+        strncpy(modifierMode, "Versus ", BUF_SIZE);
     }
     else if (is20GMode(gameMode))
     {
-        strcpy(modifierMode, "20G ");
+        strncpy(modifierMode, "20G ", BUF_SIZE);
     }
     else if (isBigMode(gameMode))
     {
-        strcpy(modifierMode, "Big ");
+        strncpy(modifierMode, "Big ", BUF_SIZE);
     }
     else if (isItemMode(gameMode))
     {
-        strcpy(modifierMode, "Item ");
+        strncpy(modifierMode, "Item ", BUF_SIZE);
     }
     else if (isTLSMode(gameMode))
     {
-        strcpy(modifierMode, "TLS ");
+        strncpy(modifierMode, "TLS ", BUF_SIZE);
     }
 
-    char baseMode[16] = "";
+    char baseMode[BUF_SIZE] = "";
     switch (getBaseMode(gameMode))
     {
     case TAP_MODE_NULL:
-        strcpy(baseMode, "NULL");
+        strncpy(baseMode, "NULL", BUF_SIZE);
         break;
     case TAP_MODE_NORMAL:
-        strcpy(baseMode, "Normal");
+        strncpy(baseMode, "Normal", BUF_SIZE);
         break;
     case TAP_MODE_MASTER:
-        strcpy(baseMode, "Master");
+        strncpy(baseMode, "Master", BUF_SIZE);
         break;
     case TAP_MODE_DOUBLES:
-        strcpy(baseMode, "Doubles");
+        strncpy(baseMode, "Doubles", BUF_SIZE);
         break;
     case TAP_MODE_TGMPLUS:
-        strcpy(baseMode, "TGM+");
+        strncpy(baseMode, "TGM+", BUF_SIZE);
         break;
     case TAP_MODE_DEATH:
-        strcpy(baseMode, "Death");
+        strncpy(baseMode, "Death", BUF_SIZE);
         break;
     default:
-        strcpy(baseMode, "???");
+        strncpy(baseMode, "???", BUF_SIZE);
     }
 
     snprintf(buffer, bufferLength, "%s%s", modifierMode, baseMode);

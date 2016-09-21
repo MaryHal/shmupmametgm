@@ -27,5 +27,8 @@ extern uint8_t TgmToFumenMapping[9];
 
 void TgmToFumenState(struct tgm_state* tstate);
 
+// Helper Functions
+int createDir(const char* path);
+
 
 #endif /* TGM_COMMON_H */

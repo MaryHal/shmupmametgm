@@ -11,19 +11,6 @@
 #include "emu.h"
 #include "debug/express.h"
 
-#if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))
-#include <sys/stat.h>
-
-int createDir(const char* path)
-{
-    struct stat st = {0};
-    if (stat(path, &st) == -1)
-    {
-        return mkdir(path, 0700);
-    }
-    return 0;
-}
-
 void tgm2p_create_mmap()
 {
     tgm_mm_create(sizeof(struct tgm_state));
@@ -33,47 +20,6 @@ void tgm2p_destroy_mmap()
 {
     tgm_mm_destroy();
 }
-
-#elif defined(_WIN64) || defined(_WIN32)
-
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
-static struct tgm_state* sharedAddr = NULL;
-
-int createDir(const char* path)
-{
-    const WCHAR* wcpath;
-    int nChars = MultiByteToWideChar(CP_ACP, 0, path, -1, NULL, 0);
-    wcpath = (WCHAR*)malloc(sizeof(WCHAR) * nChars);
-    MultiByteToWideChar(CP_ACP, 0, path, -1, (LPWSTR)wcpath, nChars);
-
-    if (GetFileAttributes(wcpath) == INVALID_FILE_ATTRIBUTES)
-    {
-        if (CreateDirectory(wcpath, NULL) == 0)
-        {
-            WCHAR buf[256];
-            FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf, 256, NULL);
-            printf("%ls\n", buf);
-        }
-    }
-
-    free((void*)wcpath);
-
-    return 0;
-}
-
-void tgm2p_create_mmap()
-{
-    // TODO
-}
-
-void tgm2p_destroy_mmap()
-{
-    // TODO
-}
-
-#endif
 
 static const int GRADE_COUNT = 32;
 static const char* GRADE_DISPLAY[GRADE_COUNT] =

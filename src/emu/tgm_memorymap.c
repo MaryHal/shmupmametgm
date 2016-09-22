@@ -66,7 +66,7 @@ void* tgm_mm_getMapPointer()
     return sharedMem;
 }
 
-#else
+#else // Windows
 
 void tgm_mm_create(size_t dataSize)
 {

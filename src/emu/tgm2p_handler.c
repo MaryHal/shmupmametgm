@@ -368,71 +368,71 @@ static void writePlacementLog()
     if (stateListSize == 0)
     {
         printf("State list is empty!\n");
+        return;
     }
     else if (isDemoState(stateList, stateListSize))
     {
         printf("Demo state detected!\n");
+        return;
+    }
+
+    // Push the killing piece. We must use the previous state
+    // since, upon death, TAP clears some data.
+    pushStateToList(stateList, &stateListSize, &prevState);
+
+    // Create fumen directory if it doesn't exist.
+    createDir("fumen/");
+    createDir("fumen/tgm2p");
+
+    char directory[32];
+    char timebuf[32];
+    char filename[80];
+
+    // Create a directory for the day if it doesn't already exist.
+    time_t rawTime;
+    time(&rawTime);
+    const struct tm* timeInfo = localtime(&rawTime);
+    strftime(directory, 32, "fumen/tgm2p/%Y-%m-%d", timeInfo);
+
+    char modeName[32];
+    getModeName(modeName, 32, gameModeAtStart);
+
+    createDir(directory);
+
+    strftime(timebuf, 32, "%H-%M-%S", timeInfo);
+    snprintf(filename, 80, "%s/%s_%s_Lvl%d.txt", directory, timebuf, modeName, prevState.level);
+
+    FILE* file = fopen(filename, "w");
+
+    if (file != NULL)
+    {
+        printf("Writing data to %s.\n", filename);
+
+        fprintf(file, "%s\n", modeName);
+
+        for (size_t i = 0; i < stateListSize; ++i)
+        {
+            stateList[i].tetromino = TgmToFumenMapping[stateList[i].tetromino];
+            TgmToFumenState(&stateList[i]);
+
+            struct tgm_state* current = &stateList[i];
+            fprintf(file, "%s,%d,%d,%d,%d,%d,%d,%d,%d\n",
+                    GRADE_DISPLAY[(int)current->grade],
+                    current->level,
+                    current->timer,
+                    current->tetromino,
+                    current->xcoord,
+                    current->ycoord,
+                    current->rotation,
+                    testMasterConditions(current->mrollFlags),
+                    current->inCreditRoll
+                );
+        }
+        fclose(file);
     }
     else
     {
-        // Push the killing piece. We must use the previous state
-        // since, upon death, TAP clears some data.
-        pushStateToList(stateList, &stateListSize, &prevState);
-
-        // Create fumen directory if it doesn't exist.
-        createDir("fumen/");
-        createDir("fumen/tgm2p");
-
-        char directory[32];
-        char timebuf[32];
-        char filename[80];
-
-        // Create a directory for the day if it doesn't already exist.
-        time_t rawTime;
-        time(&rawTime);
-        const struct tm* timeInfo = localtime(&rawTime);
-        strftime(directory, 32, "fumen/tgm2p/%Y-%m-%d", timeInfo);
-
-        char modeName[32];
-        getModeName(modeName, 32, gameModeAtStart);
-
-        createDir(directory);
-
-        strftime(timebuf, 32, "%H-%M-%S", timeInfo);
-        snprintf(filename, 80, "%s/%s_%s_Lvl%d.txt", directory, timebuf, modeName, prevState.level);
-
-        FILE* file = fopen(filename, "w");
-
-        if (file != NULL)
-        {
-            printf("Writing data to %s.\n", filename);
-
-            fprintf(file, "%s\n", modeName);
-
-            for (size_t i = 0; i < stateListSize; ++i)
-            {
-                stateList[i].tetromino = TgmToFumenMapping[stateList[i].tetromino];
-                TgmToFumenState(&stateList[i]);
-
-                struct tgm_state* current = &stateList[i];
-                fprintf(file, "%s,%d,%d,%d,%d,%d,%d,%d,%d\n",
-                        GRADE_DISPLAY[(int)current->grade],
-                        current->level,
-                        current->timer,
-                        current->tetromino,
-                        current->xcoord,
-                        current->ycoord,
-                        current->rotation,
-                        testMasterConditions(current->mrollFlags),
-                        current->inCreditRoll
-                    );
-            }
-            fclose(file);
-        }
-        else
-        {
-            printf("Cannot write log to %s.\n", filename);
-        }
+        fprintf(stderr, "Cannot write log to %s.\n", filename);
     }
 
     stateListSize = 0;

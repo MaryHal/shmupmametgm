@@ -303,7 +303,7 @@ const char *device_config::get_config_string(UINT32 state) const
 
 astring &device_config::subtag(astring &dest, const char *_tag) const
 {
-	return (this != NULL) ? dest.cpy(m_tag).cat(":").cat(_tag) : dest.cpy(_tag);
+	return dest.cpy(_tag);
 }
 
 

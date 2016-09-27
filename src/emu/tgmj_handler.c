@@ -22,13 +22,14 @@ enum tgmj_internal_state
     TGMJ_LOCKING      = 30, // Cannot be influenced anymore
     TGMJ_LOCKED       = 60,
     TGMJ_LINECLEAR    = 40,
-    TGMJ_GAMEOVER     = 116,  // "Game Over" is being shown on screen.
 
     TGMJ_ENTRY        = 10,
     TGMJ_ENTRY2       = 100,
 
     TGMJ_FADING1      = 111, // Blocks greying out at when topping out
     TGMJ_FADING2      = 112, // Blocks greying out at when topping out
+    TGMJ_NAME_ENTRY   = 114,
+    TGMJ_GAMEOVER     = 116,  // "Game Over" is being shown on screen.
 
     TGMJ_READY0       = 90, // READY!
     TGMJ_READY1       = 91, // READY!
@@ -45,6 +46,28 @@ enum tgmj_internal_state
 #define MODE_REV_MASK  (1 << 4)
 #define MODE_MONO_MASK (1 << 5)
 #define MODE_TLS_MASK  (1 << 7)
+
+static void getModeName(char* buffer, size_t bufferLength, uint8_t gameMode)
+{
+    snprintf(buffer, bufferLength, "%s%s%s%s%s%s",
+             gameMode & MODE_20G_MASK  ? "20G " : "",
+             gameMode & MODE_BIG_MASK  ? "Big " : "",
+             gameMode & MODE_UKI_MASK  ? "Uki " : "",
+             gameMode & MODE_REV_MASK  ? "Reverse " : "",
+             gameMode & MODE_MONO_MASK ? "Mono " : "",
+             gameMode & MODE_TLS_MASK  ? "TLS" : "");
+}
+
+static bool inPlayingState(uint8_t state)
+{
+    return
+        state == TGMJ_ACTIVE    ||
+        state == TGMJ_LOCKING   ||
+        state == TGMJ_LOCKED    ||
+        state == TGMJ_LINECLEAR ||
+        state == TGMJ_ENTRY     ||
+        state == TGMJ_ENTRY2;
+}
 
 static const offs_t STATE_ADDR = 0x0017695D; // p1 State
 static const offs_t LEVEL_ADDR = 0x0017699A;

@@ -198,7 +198,7 @@ static bool testMasterConditions(char flags)
         flags == M_SUCCESS;
 }
 
-static bool inPlayingState(char state)
+static bool inPlayingState(uint8_t state)
 {
     return state != TAP_NONE && state != TAP_IDLE && state != TAP_STARTUP;
 }

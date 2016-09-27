@@ -173,7 +173,7 @@ public:
 
 	operator void *() const { return (this != NULL) ? base.v : NULL; }
 	operator INT8 *() const { return (this != NULL) ? base.i8 : NULL; }
-	operator UINT8 *() const { return  NULL; }
+	operator UINT8 *() const { return (this != NULL) ? base.u8 : NULL; }
 	operator INT16 *() const { return (this != NULL) ? base.i16 : NULL; }
 	operator UINT16 *() const { return (this != NULL) ? base.u16 : NULL; }
 	operator INT32 *() const { return (this != NULL) ? base.i32 : NULL; }

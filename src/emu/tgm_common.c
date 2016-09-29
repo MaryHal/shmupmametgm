@@ -11,6 +11,8 @@ uint8_t TgmToFumenMapping[9] = { 0, 0, 1, 4, 7, 6, 2, 3, 5 };
 // (depending on tetromino and rotation state).
 void TgmToFumenState(struct tgm_state* tstate)
 {
+    tstate->tetromino = TgmToFumenMapping[tstate->tetromino];
+
     if (tstate->tetromino == 1)
     {
         if (tstate->rotation == 1 || tstate->rotation == 3)
@@ -39,6 +41,37 @@ void TgmToFumenState(struct tgm_state* tstate)
             tstate->ycoord -= 1;
         }
     }
+}
+
+bool testDemoState(struct tgm_state* stateList, size_t listLength, struct tgm_state* demo, size_t demoLength)
+{
+    /* if (listLength > demoLength) */
+    /* { */
+    /*     return false; */
+    /* } */
+
+    int misses = 0;
+
+    size_t sCount = 0;
+    size_t dCount = 0;
+    for (; sCount < listLength && dCount < demoLength; ++dCount)
+    {
+        if (stateList[sCount].gameMode  != demo[dCount].gameMode  ||
+            stateList[sCount].tetromino != demo[dCount].tetromino ||
+            stateList[sCount].xcoord    != demo[dCount].xcoord    ||
+            stateList[sCount].ycoord    != demo[dCount].ycoord)
+        {
+            misses++;
+
+            // This is great. Don't let anyone tell you otherwise.
+            if (misses >= 6) return false;
+        }
+        else
+        {
+            sCount++;
+        }
+    }
+    return true;
 }
 
 #if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))

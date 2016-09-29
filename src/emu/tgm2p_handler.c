@@ -243,9 +243,6 @@ static void readState(const address_space* space, struct tgm_state* state)
 
 static void pushStateToList(struct tgm_state* list, size_t* listSize, struct tgm_state* state)
 {
-    /* state->tetromino = TgmToFumenMapping[state->tetromino]; */
-    /* TgmToFumenState(state); */
-
     list[*listSize] = *state;
     (*listSize)++;
 }
@@ -379,9 +376,9 @@ static void writePlacementLog()
 
         for (size_t i = 0; i < stateListSize; ++i)
         {
-            TgmToFumenState(&stateList[i]);
-
             struct tgm_state* current = &stateList[i];
+            TgmToFumenState(current);
+            
             fprintf(file, "%s,%d,%d,%d,%d,%d,%d,%d,%d\n",
                     GRADE_DISPLAY[(int)current->grade],
                     current->level,

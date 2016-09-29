@@ -120,22 +120,22 @@ static void pushStateToList(struct tgm_state* list, size_t* listSize, struct tgm
 }
 
 // Triple into suicide
-static const size_t demo01_length = 13;
+static const size_t demo01_length = 12;
 static struct tgm_state demo01[] =
 {
-    { 2, 9, 0, 0,  0, 6, 4, 3,  1, 0, 0, 0 },
-    { 2, 9, 0, 4,  0, 4, 4, 3,  0, 0, 0, 0 },
-    { 2, 9, 0, 5,  0, 6, 4, 4,  0, 0, 0, 0 },
-    { 2, 9, 0, 6,  0, 2, 4, 6,  0, 0, 0, 0 },
-    { 2, 9, 0, 7,  0, 5, 4, 8,  0, 0, 0, 0 },
-    { 2, 9, 0, 8,  0, 4, 4, 10, 0, 0, 0, 0 },
-    { 2, 9, 0, 9,  0, 1, 4, 11, 0, 0, 0, 0 },
-    { 2, 9, 0, 10, 0, 2, 4, 13, 0, 0, 0, 0 },
-    { 2, 9, 0, 11, 0, 3, 4, 15, 0, 0, 0, 0 },
-    { 2, 9, 0, 12, 0, 6, 4, 17, 0, 0, 0, 0 },
-    { 2, 9, 0, 13, 0, 7, 4, 19, 0, 0, 0, 0 },
-    { 2, 9, 0, 14, 0, 4, 4, 21, 0, 0, 0, 0 },
-    { 2, 9, 0, 15, 0, 5, 4, 21, 0, 0, 0, 0 },
+    { 2, 9, 0, 0,  0, 5, 4, 3,  1, 0, 0, 0 },
+    { 2, 9, 0, 4,  0, 3, 4, 3,  0, 0, 0, 0 },
+    { 2, 9, 0, 5,  0, 5, 4, 4,  0, 0, 0, 0 },
+    { 2, 9, 0, 6,  0, 6, 4, 6,  0, 0, 0, 0 },
+    { 2, 9, 0, 7,  0, 8, 4, 8,  0, 0, 0, 0 },
+    { 2, 9, 0, 8,  0, 3, 4, 10, 0, 0, 0, 0 },
+    { 2, 9, 0, 9,  0, 2, 4, 11, 0, 0, 0, 0 },
+    { 2, 9, 0, 10, 0, 6, 4, 13, 0, 0, 0, 0 },
+    { 2, 9, 0, 11, 0, 7, 4, 15, 0, 0, 0, 0 },
+    { 2, 9, 0, 12, 0, 5, 4, 17, 0, 0, 0, 0 },
+    { 2, 9, 0, 13, 0, 4, 4, 19, 0, 0, 0, 0 },
+    { 2, 9, 0, 14, 0, 3, 4, 21, 0, 0, 0, 0 },
+    { 2, 9, 0, 15, 0, 8, 4, 21, 0, 0, 0, 0 },
 };
 
 // Stairs: wallkick demo
@@ -196,6 +196,15 @@ static struct tgm_state demo05[] =
     { 2, 9, 0, 518, 0, 8, 5, 4, 3,  0, 0, 0 },
 };
 
+static const size_t demo06_length = 4;
+static struct tgm_state demo06[] =
+{
+    { 2, 9, 0, 40, 0, 7, 4, 3,  1,  0, 0, 0 },
+    { 2, 9, 0, 41, 0, 2, 4, 6,  3,  0, 0, 0 },
+    { 2, 9, 0, 42, 0, 3, 4, 8,  1,  0, 0, 0 },
+    { 2, 9, 0, 43, 0, 5, 4, 21, 1,  0, 0, 0 },
+};
+
 static bool isDemoState(struct tgm_state* stateList, size_t listSize)
 {
     return
@@ -203,7 +212,8 @@ static bool isDemoState(struct tgm_state* stateList, size_t listSize)
         testDemoState(stateList, listSize, demo02, demo02_length) ||
         testDemoState(stateList, listSize, demo03, demo03_length) ||
         testDemoState(stateList, listSize, demo04, demo04_length) ||
-        testDemoState(stateList, listSize, demo05, demo05_length);
+        testDemoState(stateList, listSize, demo05, demo05_length) ||
+        testDemoState(stateList, listSize, demo06, demo06_length);
 }
 
 static void writePlacementLog()
@@ -250,14 +260,13 @@ static void writePlacementLog()
     if (file != NULL)
     {
         printf("Writing data to %s.\n", filename);
-
         fprintf(file, "%s\n", modeName);
 
         for (size_t i = 0; i < stateListSize; ++i)
         {
-            TgmToFumenState(&stateList[i]);
-
             struct tgm_state* current = &stateList[i];
+            TgmToFumenState(current);
+
             fprintf(file, "%s,%d,%d,%d,%d,%d,%d,%d,%d\n",
                     GRADE_DISPLAY[(int)current->grade],
                     current->level,

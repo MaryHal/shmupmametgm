@@ -47,26 +47,21 @@ void TgmToFumenState(struct tgm_state* tstate)
 
 bool testDemoState(struct tgm_state* stateList, size_t listLength, struct tgm_state* demo, size_t demoLength)
 {
-    /* if (listLength > demoLength) */
-    /* { */
-    /*     return false; */
-    /* } */
+    size_t s = 0;
+    size_t d = 0;
 
-    size_t sCount = 0;
-    size_t dCount = 0;
-
-    while (sCount < listLength && dCount < demoLength)
+    while (s < listLength && d < demoLength)
     {
-        if (stateList[sCount].gameMode  != demo[dCount].gameMode  ||
-            stateList[sCount].tetromino != demo[dCount].tetromino ||
-            stateList[sCount].xcoord    != demo[dCount].xcoord    ||
-            stateList[sCount].ycoord    != demo[dCount].ycoord)
+        if (stateList[s].gameMode  != demo[d].gameMode  ||
+            stateList[s].tetromino != demo[d].tetromino ||
+            stateList[s].xcoord    != demo[d].xcoord    ||
+            stateList[s].ycoord    != demo[d].ycoord)
         {
             return false;
         }
 
-        sCount++;
-        ++dCount;
+        s++;
+        d++;
     }
 
     return true;

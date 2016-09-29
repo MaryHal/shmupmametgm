@@ -112,9 +112,6 @@ static void readState(const address_space* space, struct tgm_state* state)
 
 static void pushStateToList(struct tgm_state* list, size_t* listSize, struct tgm_state* state)
 {
-    /* state->tetromino = TgmToFumenMapping[state->tetromino]; */
-    /* TgmToFumenState(state); */
-
     list[*listSize] = *state;
     (*listSize)++;
 }

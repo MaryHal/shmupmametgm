@@ -312,39 +312,6 @@ static struct tgm_state demo03[] =
     { 2, 0, 19, 15, 1050, 8, 0, 7, 1, 48, 0, 4 }
 };
 
-static bool testDemoState(struct tgm_state* stateList, size_t listSize, struct tgm_state* demo, size_t demoSize)
-{
-    if (listSize > demoSize)
-    {
-        return false;
-    }
-
-    int misses = 0;
-
-    size_t sCount = 0;
-    size_t dCount = 0;
-    for (; sCount < listSize && dCount < demoSize; ++dCount)
-    {
-        if (stateList[sCount].gameMode  != demo[dCount].gameMode  ||
-            stateList[sCount].tetromino != demo[dCount].tetromino ||
-            stateList[sCount].xcoord    != demo[dCount].xcoord    ||
-            stateList[sCount].ycoord    != demo[dCount].ycoord)
-        {
-            misses++;
-
-            if (misses >= 6)
-            {
-                return false;
-            }
-        }
-        else
-        {
-            sCount++;
-        }
-    }
-    return true;
-}
-
 static bool isDemoState(struct tgm_state* stateList, size_t listSize)
 {
     return
@@ -412,7 +379,6 @@ static void writePlacementLog()
 
         for (size_t i = 0; i < stateListSize; ++i)
         {
-            stateList[i].tetromino = TgmToFumenMapping[stateList[i].tetromino];
             TgmToFumenState(&stateList[i]);
 
             struct tgm_state* current = &stateList[i];
@@ -434,8 +400,6 @@ static void writePlacementLog()
     {
         fprintf(stderr, "Cannot write log to %s.\n", filename);
     }
-
-    stateListSize = 0;
 }
 
 void tgm2p_setAddressSpace(running_machine* machine)
@@ -455,7 +419,10 @@ void tgm2p_run(bool fumen, bool tracker)
         // Game has begun, save the game mode since tgm2p removes mode
         // modifiers when the game ends.
         if (!inPlayingState(prevState.state) && inPlayingState(curState.state))
+        {
+            stateListSize = 0;
             gameModeAtStart = curState.gameMode;
+        }
 
         // Piece is locked in
         if (inPlayingState(curState.state) && prevState.state == TAP_ACTIVE && curState.state == TAP_LOCKING)

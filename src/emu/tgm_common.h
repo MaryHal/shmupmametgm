@@ -2,6 +2,7 @@
 #define TGM_COMMON_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 struct tgm_state
 {
@@ -22,13 +23,12 @@ struct tgm_state
     int16_t gameMode;
 };
 
-// Convert Tetromino indices from TGM -> Fumen
-extern uint8_t TgmToFumenMapping[9];
-
 void TgmToFumenState(struct tgm_state* tstate);
 
 // Helper Functions
 int createDir(const char* path);
 
+// TODO: Find the attract mode data!
+bool testDemoState(struct tgm_state* stateList, size_t listLength, struct tgm_state* demo, size_t demoLength);
 
 #endif /* TGM_COMMON_H */

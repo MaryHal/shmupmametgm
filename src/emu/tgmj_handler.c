@@ -53,12 +53,12 @@ enum tgmj_internal_state
 static void getModeName(char* buffer, size_t bufferLength, uint8_t gameMode)
 {
     snprintf(buffer, bufferLength, "%s%s%s%s%s%s",
-             gameMode & MODE_20G_MASK  ? "20G " : "",
-             gameMode & MODE_BIG_MASK  ? "Big " : "",
-             gameMode & MODE_UKI_MASK  ? "Uki " : "",
-             gameMode & MODE_REV_MASK  ? "Reverse " : "",
-             gameMode & MODE_MONO_MASK ? "Mono " : "",
-             gameMode & MODE_TLS_MASK  ? "TLS" : "");
+             gameMode & MODE_BIG_MASK  ? "Big"     : "",
+             gameMode & MODE_UKI_MASK  ? "Uki"     : "",
+             gameMode & MODE_REV_MASK  ? "Reverse" : "",
+             gameMode & MODE_MONO_MASK ? "Mono "   : "",
+             gameMode & MODE_TLS_MASK  ? "TLS"     : "",
+             gameMode & MODE_20G_MASK  ? "20G"     : "");
 }
 
 static bool inPlayingState(uint8_t state)
@@ -119,6 +119,93 @@ static void pushStateToList(struct tgm_state* list, size_t* listSize, struct tgm
     (*listSize)++;
 }
 
+// Triple into suicide
+static const size_t demo01_length = 13;
+static struct tgm_state demo01[] =
+{
+    { 2, 9, 0, 0,  0, 6, 4, 3,  1, 0, 0, 0 },
+    { 2, 9, 0, 4,  0, 4, 4, 3,  0, 0, 0, 0 },
+    { 2, 9, 0, 5,  0, 6, 4, 4,  0, 0, 0, 0 },
+    { 2, 9, 0, 6,  0, 2, 4, 6,  0, 0, 0, 0 },
+    { 2, 9, 0, 7,  0, 5, 4, 8,  0, 0, 0, 0 },
+    { 2, 9, 0, 8,  0, 4, 4, 10, 0, 0, 0, 0 },
+    { 2, 9, 0, 9,  0, 1, 4, 11, 0, 0, 0, 0 },
+    { 2, 9, 0, 10, 0, 2, 4, 13, 0, 0, 0, 0 },
+    { 2, 9, 0, 11, 0, 3, 4, 15, 0, 0, 0, 0 },
+    { 2, 9, 0, 12, 0, 6, 4, 17, 0, 0, 0, 0 },
+    { 2, 9, 0, 13, 0, 7, 4, 19, 0, 0, 0, 0 },
+    { 2, 9, 0, 14, 0, 4, 4, 21, 0, 0, 0, 0 },
+    { 2, 9, 0, 15, 0, 5, 4, 21, 0, 0, 0, 0 },
+};
+
+// Stairs: wallkick demo
+static const size_t demo02_length = 3;
+static struct tgm_state demo02[] =
+{
+    { 2, 9, 0, 70, 0, 8, 8, 3,  2, 0, 0, 0 },
+    { 2, 9, 0, 72, 0, 5, 8, 3,  0, 0, 0, 0 },
+    { 2, 9, 0, 75, 0, 7, 4, 21, 0, 0, 0, 0 },
+};
+
+// High gravity in messy field
+static const size_t demo03_length = 5;
+static struct tgm_state demo03[] =
+{
+    { 2, 9, 0, 140, 0, 4, 2, 3,  2, 0, 0, 0 },
+    { 2, 9, 0, 141, 0, 5, 7, 3,  2, 0, 0, 0 },
+    { 2, 9, 0, 143, 0, 8, 6, 4,  3, 0, 0, 0 },
+    { 2, 9, 0, 144, 0, 6, 6, 7,  3, 0, 0, 0 },
+    { 2, 9, 0, 145, 0, 4, 4, 21, 0, 0, 0, 0 },
+};
+
+// S3 Level Player
+static const size_t demo04_length = 13;
+static struct tgm_state demo04[] =
+{
+    { 2, 9, 0, 500, 0, 2, 8, 4,  1, 0, 0, 0 },
+    { 2, 9, 0, 502, 0, 8, 3, 5,  3, 0, 0, 0 },
+    { 2, 9, 0, 503, 0, 5, 8, 4,  1, 0, 0, 0 },
+    { 2, 9, 0, 504, 0, 5, 0, 4,  1, 0, 0, 0 },
+    { 2, 9, 0, 505, 0, 4, 2, 7,  0, 0, 0, 0 },
+    { 2, 9, 0, 506, 0, 3, 4, 8,  2, 0, 0, 0 },
+    { 2, 9, 0, 507, 0, 8, 0, 7,  1, 0, 0, 0 },
+    { 2, 9, 0, 508, 0, 7, 3, 10, 0, 0, 0, 0 },
+    { 2, 9, 0, 509, 0, 4, 1, 9,  1, 0, 0, 0 },
+    { 2, 9, 0, 510, 0, 7, 3, 12, 0, 0, 0, 0 },
+    { 2, 9, 0, 511, 0, 6, 2, 9,  3, 0, 0, 0 },
+    { 2, 9, 0, 512, 0, 6, 6, 6,  1, 0, 0, 0 },
+    { 2, 9, 0, 514, 0, 8, 8, 6,  2, 0, 0, 0 },
+};
+
+// GM Level Player
+static const size_t demo05_length = 13;
+static struct tgm_state demo05[] =
+{
+    { 2, 9, 0, 500, 0, 2, 8, 4, 1,  0, 0, 0 },
+    { 2, 9, 0, 502, 0, 8, 3, 5, 3,  0, 0, 0 },
+    { 2, 9, 0, 503, 0, 5, 0, 4, 1,  0, 0, 0 },
+    { 2, 9, 0, 504, 0, 5, 8, 4, 1,  0, 0, 0 },
+    { 2, 9, 0, 505, 0, 4, 7, 5, 1,  0, 0, 0 },
+    { 2, 9, 0, 508, 0, 3, 4, 6, 0,  0, 0, 0 },
+    { 2, 9, 0, 509, 0, 8, 2, 5, 1,  0, 0, 0 },
+    { 2, 9, 0, 510, 0, 7, 0, 5, 0,  0, 0, 0 },
+    { 2, 9, 0, 511, 0, 4, 1, 7, 0,  0, 0, 0 },
+    { 2, 9, 0, 512, 0, 7, 8, 5, 0,  0, 0, 0 },
+    { 2, 9, 0, 513, 0, 6, 7, 4, 3,  0, 0, 0 },
+    { 2, 9, 0, 517, 0, 6, 8, 4, 2,  0, 0, 0 },
+    { 2, 9, 0, 518, 0, 8, 5, 4, 3,  0, 0, 0 },
+};
+
+static bool isDemoState(struct tgm_state* stateList, size_t listSize)
+{
+    return
+        testDemoState(stateList, listSize, demo01, demo01_length) ||
+        testDemoState(stateList, listSize, demo02, demo02_length) ||
+        testDemoState(stateList, listSize, demo03, demo03_length) ||
+        testDemoState(stateList, listSize, demo04, demo04_length) ||
+        testDemoState(stateList, listSize, demo05, demo05_length);
+}
+
 static void writePlacementLog()
 {
     if (stateListSize == 0)
@@ -126,11 +213,11 @@ static void writePlacementLog()
         printf("State list is empty!\n");
         return;
     }
-    /* else if (isDemoState(stateList, stateListSize)) */
-    /* { */
-    /*     printf("Demo state detected!\n"); */
-    /*     return; */
-    /* } */
+    else if (isDemoState(stateList, stateListSize))
+    {
+        printf("Demo state detected!\n");
+        return;
+    }
 
     // Push the killing piece. We must use the previous state
     // since, upon death, TAP clears some data.
@@ -138,7 +225,7 @@ static void writePlacementLog()
 
     // Create fumen directory if it doesn't exist.
     createDir("fumen/");
-    createDir("fumen/tgm2p");
+    createDir("fumen/tgmj");
 
     char directory[32];
     char timebuf[32];
@@ -148,7 +235,7 @@ static void writePlacementLog()
     time_t rawTime;
     time(&rawTime);
     const struct tm* timeInfo = localtime(&rawTime);
-    strftime(directory, 32, "fumen/tgm2p/%Y-%m-%d", timeInfo);
+    strftime(directory, 32, "fumen/tgmj/%Y-%m-%d", timeInfo);
 
     char modeName[32];
     getModeName(modeName, 32, gameModeAtStart);
@@ -156,7 +243,7 @@ static void writePlacementLog()
     createDir(directory);
 
     strftime(timebuf, 32, "%H-%M-%S", timeInfo);
-    snprintf(filename, 80, "%s/%s_%s_Lvl%d.txt", directory, timebuf, modeName, prevState.level);
+    snprintf(filename, 80, "%s/%s_Lvl%d.txt", directory, timebuf, prevState.level);
 
     FILE* file = fopen(filename, "w");
 
@@ -168,7 +255,6 @@ static void writePlacementLog()
 
         for (size_t i = 0; i < stateListSize; ++i)
         {
-            stateList[i].tetromino = TgmToFumenMapping[stateList[i].tetromino];
             TgmToFumenState(&stateList[i]);
 
             struct tgm_state* current = &stateList[i];
@@ -222,6 +308,7 @@ void tgmj_run(bool fumen, bool tracker)
         // modifiers when the game ends.
         if (!inPlayingState(prevState.state) && inPlayingState(curState.state))
         {
+            stateListSize = 0;
             gameModeAtStart = prevState.gameMode;
         }
 

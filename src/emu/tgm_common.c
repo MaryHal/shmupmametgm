@@ -1,5 +1,7 @@
 #include "tgm_common.h"
 
+#include <stdio.h>
+
 // TGM indexes its pieces slightly differently to fumen, so when encoding a
 // diagram we must convert the indices:
 // 2 3 4 5 6 7 8 (TAP)
@@ -50,27 +52,23 @@ bool testDemoState(struct tgm_state* stateList, size_t listLength, struct tgm_st
     /*     return false; */
     /* } */
 
-    int misses = 0;
-
     size_t sCount = 0;
     size_t dCount = 0;
-    for (; sCount < listLength && dCount < demoLength; ++dCount)
+
+    while (sCount < listLength && dCount < demoLength)
     {
         if (stateList[sCount].gameMode  != demo[dCount].gameMode  ||
             stateList[sCount].tetromino != demo[dCount].tetromino ||
             stateList[sCount].xcoord    != demo[dCount].xcoord    ||
             stateList[sCount].ycoord    != demo[dCount].ycoord)
         {
-            misses++;
+            return false;
+        }
 
-            // This is great. Don't let anyone tell you otherwise.
-            if (misses >= 6) return false;
-        }
-        else
-        {
-            sCount++;
-        }
+        sCount++;
+        ++dCount;
     }
+
     return true;
 }
 

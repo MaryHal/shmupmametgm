@@ -378,8 +378,8 @@ static void writePlacementLog()
         {
             struct tgm_state* current = &stateList[i];
             TgmToFumenState(current);
-            
-            fprintf(file, "%s,%d,%d,%d,%d,%d,%d,%d,%d\n",
+
+            fprintf(file, "%s,%d,%u,%d,%d,%d,%d,%d,%d\n",
                     GRADE_DISPLAY[(int)current->grade],
                     current->level,
                     current->timer,

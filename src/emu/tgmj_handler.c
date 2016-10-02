@@ -52,6 +52,11 @@ enum tgmj_internal_state
 
 static void getModeName(char* buffer, size_t bufferLength, uint8_t gameMode)
 {
+    if (gameMode == 0)
+    {
+        snprintf(buffer, bufferLength, "Normal");
+    }
+
     snprintf(buffer, bufferLength, "%s%s%s%s%s%s",
              gameMode & MODE_BIG_MASK  ? "Big"     : "",
              gameMode & MODE_UKI_MASK  ? "Uki"     : "",
@@ -227,7 +232,7 @@ static void writePlacementLog()
     }
 
     // Push the killing piece. We must use the previous state
-    // since, upon death, TAP clears some data.
+    // since, upon death, the game clears some data.
     pushStateToList(stateList, &stateListSize, &prevState);
 
     // Create fumen directory if it doesn't exist.
@@ -264,7 +269,7 @@ static void writePlacementLog()
             struct tgm_state* current = &stateList[i];
             TgmToFumenState(current);
 
-            fprintf(file, "%s,%d,%d,%d,%d,%d,%d,%d,%d\n",
+            fprintf(file, "%s,%d,%u,%d,%d,%d,%d,%d,%d\n",
                     GRADE_DISPLAY[(int)current->grade],
                     current->level,
                     current->timer,

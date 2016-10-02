@@ -1,6 +1,7 @@
 #include "tgm_common.h"
 
 #include <stdio.h>
+#include <stdbool.h>
 
 // TGM indexes its pieces slightly differently to fumen, so when encoding a
 // diagram we must convert the indices:
@@ -98,7 +99,7 @@ int createDir(const char* path)
         {
             WCHAR buf[256];
             FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf, 256, NULL);
-            printf("%ls\n", buf);
+            fprintf(stderr, "%ls\n", buf);
         }
     }
 

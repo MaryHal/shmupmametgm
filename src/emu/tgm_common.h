@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 struct tgm_state
 {
@@ -11,7 +12,7 @@ struct tgm_state
     int16_t gradePoints;
 
     int16_t level;
-    int16_t timer;
+    uint16_t timer;
 
     int16_t tetromino;
     int16_t xcoord;

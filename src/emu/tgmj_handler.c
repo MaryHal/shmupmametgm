@@ -61,7 +61,7 @@ static void getModeName(char* buffer, size_t bufferLength, uint8_t gameMode)
              gameMode & MODE_BIG_MASK  ? "Big"     : "",
              gameMode & MODE_UKI_MASK  ? "Uki"     : "",
              gameMode & MODE_REV_MASK  ? "Reverse" : "",
-             gameMode & MODE_MONO_MASK ? "Mono "   : "",
+             gameMode & MODE_MONO_MASK ? "Mono"    : "",
              gameMode & MODE_TLS_MASK  ? "TLS"     : "",
              gameMode & MODE_20G_MASK  ? "20G"     : "");
 }
@@ -289,6 +289,7 @@ static void writePlacementLog()
     }
 
     stateListSize = 0;
+    gameModeAtStart = 0;
 }
 
 void tgmj_setAddressSpace(running_machine* machine)
@@ -315,11 +316,15 @@ void tgmj_run(bool fumen, bool tracker)
     // Log placements
     if (fumen)
     {
-        // Game has begun, save the game mode since tgmj removes mode
-        // modifiers when the game ends.
         if (!inPlayingState(prevState.state) && inPlayingState(curState.state))
         {
             stateListSize = 0;
+        }
+
+        // TGMJ clears this game mode flag a few frames before the game starts.
+        // Let's catch that final state change.
+        if (prevState.gameMode != curState.gameMode && curState.gameMode == 0)
+        {
             gameModeAtStart = prevState.gameMode;
         }
 

@@ -196,19 +196,8 @@ function convertFrameTime(time)
 
 function encode()
 {
+    /* This is all great code. Don't let anyone tell you otherwise. */
     newdata();
-
-    // Deprecated, shmupmametgm will report mode in output.
-    // // Figure out which mode is selected
-    // var mode = document.getElementsByName("tap-mode");
-    // for (var i = 0, len = mode.length; i < len; ++i)
-    // {
-    //     if (mode[i].checked)
-    //     {
-    //         mode = mode[i].value;
-    //         break;
-    //     }
-    // }
 
     var mode = "";
 

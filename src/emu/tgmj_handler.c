@@ -4,6 +4,7 @@
 #include "tgm_memorymap.h"
 
 #include "tgm_common.h"
+#include "tgm_util.h"
 
 #include "emu.h"
 #include "debug/express.h"
@@ -295,16 +296,6 @@ static void writePlacementLog()
 void tgmj_setAddressSpace(running_machine* machine)
 {
     space = tt_setAddressSpace(machine);
-}
-
-void tgmj_create_mmap()
-{
-    tgm_mm_create(sizeof(struct tgm_state));
-}
-
-void tgmj_destroy_mmap()
-{
-    tgm_mm_destroy();
 }
 
 void tgmj_run(bool fumen, bool tracker)

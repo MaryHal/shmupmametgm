@@ -4,22 +4,13 @@
 #include "tgm_memorymap.h"
 
 #include "tgm_common.h"
+#include "tgm_util.h"
 
 #include <stdlib.h>
 #include <time.h>
 
 #include "emu.h"
 #include "debug/express.h"
-
-void tgm2p_create_mmap()
-{
-    tgm_mm_create(sizeof(struct tgm_state));
-}
-
-void tgm2p_destroy_mmap()
-{
-    tgm_mm_destroy();
-}
 
 static const int GRADE_COUNT = 32;
 static const char* GRADE_DISPLAY[GRADE_COUNT] =
@@ -438,6 +429,7 @@ void tgm2p_run(bool fumen, bool tracker)
     if (tracker)
     {
         struct tgm_state* mmapPtr = (struct tgm_state*)tgm_mm_getMapPointer();
+
         if (mmapPtr)
             *mmapPtr = curState;
     }

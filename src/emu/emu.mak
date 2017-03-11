@@ -74,6 +74,8 @@ EMUOBJS = \
 	$(EMUOBJ)/tgm_memorymap.o \
 	$(EMUOBJ)/tgmtracker.o \
 	$(EMUOBJ)/tgm_common.o \
+	$(EMUOBJ)/tgm_util.o \
+	$(EMUOBJ)/tgm_util_win.o \
 	$(EMUOBJ)/tgmj_handler.o \
 	$(EMUOBJ)/tgm2p_handler.o \
 	$(EMUOBJ)/tilemap.o \

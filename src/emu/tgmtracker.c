@@ -5,7 +5,19 @@
 
 #include "tgm_memorymap.h"
 
+#include "tgm_common.h"
+
 #include "emu.h"
+
+static void initialize()
+{
+    tgm_mm_create(sizeof(struct tgm_state));
+}
+
+static void cleanup()
+{
+    tgm_mm_destroy();
+}
 
 const address_space* tt_setAddressSpace(running_machine* machine)
 {
@@ -25,15 +37,15 @@ const address_space* tt_setAddressSpace(running_machine* machine)
 struct tgmtracker_t tgm2p_tracker =
 {
     .setAddressSpace = tgm2p_setAddressSpace,
-    .initialize      = tgm2p_create_mmap,
-    .cleanup         = tgm2p_destroy_mmap,
+    .initialize      = initialize,
+    .cleanup         = cleanup,
     .run             = tgm2p_run
 };
 
 struct tgmtracker_t tgmj_tracker =
 {
     .setAddressSpace = tgmj_setAddressSpace,
-    .initialize      = tgmj_create_mmap,
-    .cleanup         = tgmj_destroy_mmap,
+    .initialize      = initialize,
+    .cleanup         = cleanup,
     .run             = tgmj_run
 };

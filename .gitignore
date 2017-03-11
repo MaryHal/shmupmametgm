@@ -10,3 +10,8 @@ mametgm64
 *.txt
 /.dir-locals.el
 compile_commands.json
+
+/snap/
+/cheat/
+*.inp
+mame.ini

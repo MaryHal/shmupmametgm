@@ -27,7 +27,7 @@ src/osd/windows/winwork.c:205:17: warning: cast to pointer from integer of diffe
 
 Add "PTR64=1" to the make line.
 ** Download
-If you don't want to go through the trouble of building this by yourself (and you trust me enough): [[https://github.com/MaryHal/TapTracker/releases/latest][Latest Release]]
+If you don't want to go through the trouble of building this by yourself (and you trust me enough): [[https://github.com/MaryHal/shmupmametgm/releases/latest][Latest Release]]
 
 ** Tetromino Logger
 *** Fumenizer

@@ -1,6 +1,7 @@
 * shmupmametgm :TOC_5_gh:
   - [[#building][Building]]
     - [[#troubleshooting][Troubleshooting]]
+  - [[#download][Download]]
   - [[#tetromino-logger][Tetromino Logger]]
     - [[#fumenizer][Fumenizer]]
       - [[#enabling-fumenizer][Enabling fumenizer]]
@@ -25,6 +26,9 @@ src/osd/windows/winwork.c:205:17: warning: cast to pointer from integer of diffe
 #+END_SRC
 
 Add "PTR64=1" to the make line.
+** Download
+If you don't want to go through the trouble of building this by yourself (and you trust me enough): [[https://github.com/MaryHal/TapTracker/releases/latest][Latest Release]]
+
 ** Tetromino Logger
 *** Fumenizer
 This version of shmupmametgm has been modified so that it can output piece placement data to a text file when a game of tgm2p is completed. You can then paste the file's contents [[http://rawgit.com/sanford1/shmupmametgm/master/fumen_encode.html][here]] (fumen_encode.html) to generate a [[http://fumen.zui.jp/][fumen]] diagram of the game. For now, this only works for player 1 in tgm2p.

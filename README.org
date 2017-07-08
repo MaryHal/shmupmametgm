@@ -1,28 +1,34 @@
 * shmupmametgm :TOC_5_gh:
-   - [[#building][Building]]
-   - [[#tetromino-logger][Tetromino Logger]]
-     - [[#fumenizer][Fumenizer]]
-       - [[#enabling-fumenizer][Enabling fumenizer]]
-     - [[#taptracker][TapTracker]]
-       - [[#enabling-taptracker][Enabling taptracker]]
-       - [[#using-taptracker-data][Using TapTracker data]]
-         - [[#in-c][In C]]
-         - [[#in-python][In Python]]
+  - [[#building][Building]]
+    - [[#troubleshooting][Troubleshooting]]
+  - [[#tetromino-logger][Tetromino Logger]]
+    - [[#fumenizer][Fumenizer]]
+      - [[#enabling-fumenizer][Enabling fumenizer]]
+    - [[#taptracker][TapTracker]]
+      - [[#enabling-taptracker][Enabling taptracker]]
+      - [[#using-taptracker-data][Using TapTracker data]]
+        - [[#in-c][In C]]
+        - [[#in-python][In Python]]
 
 ** Building
-
 #+BEGIN_SRC sh
 make SUBTARGET=tgm NOWERROR=1
 #+END_SRC
 
+*** Troubleshooting
+If you see errors like this:
+
+#+BEGIN_SRC text
+src/osd/windows/winwork.c:205:17: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  return (void *)result;
+                 ^~~~~~
+#+END_SRC
+
+Add "PTR64=1" to the make line.
 ** Tetromino Logger
-
 *** Fumenizer
-
 This version of shmupmametgm has been modified so that it can output piece placement data to a text file when a game of tgm2p is completed. You can then paste the file's contents [[http://rawgit.com/sanford1/shmupmametgm/master/fumen_encode.html][here]] (fumen_encode.html) to generate a [[http://fumen.zui.jp/][fumen]] diagram of the game. For now, this only works for player 1 in tgm2p.
-
 **** Enabling fumenizer
-
 To enable this functionality, you must either run shmupmametgm with the =-fumen= switch like so:
 
 #+BEGIN_SRC sh
@@ -35,14 +41,10 @@ Or enable it in your =mame.ini= file:
 # In mame.ini
 fumen          1
 #+END_SRC
-
 *** TapTracker
-
-If you're using *nix, this version of shmupmametgm can also write tgm2p data to a memory mapped file at =/dev/shm/taptracker_data=. With this, other processes can read constantly updated data from tgm2p in MAME for logging purposes, or whatever you can think of! I've written a level graph, section data viewer, and button viewer that you can run alongside shmupmametgm [[https://github.com/sanford1/TapTracker][here]] (also called TapTracker).
-
+If you're using *nix, this version of shmupmametgm can also write tgm2p data to a memory mapped file at =/dev/shm/taptracker_data=. With this, other processes can read constantly updated data from tgm2p in MAME for logging purposes, or whatever you can think of! I've written a level graph, section data viewer, and button viewer that you can run alongside shmupmametgm [[https://github.com/sanford1/TapTracker][here]] (also called TapTracker). On Windows, this file is located at =%APPDATA%\taptracker_data=.
 **** Enabling taptracker
-
-Similarly to fumenizer, you can activate this functionality for tgm2p with the =-taptracker= switch:
+Similar to fumenizer, you can activate this functionality for tgm2p with the =-taptracker= switch:
 
 #+BEGIN_SRC sh
 mametgm64 -taptracker tgm2p
@@ -54,7 +56,6 @@ Or enable it in your =mame.ini= file (not recommended):
 # In mame.ini
 taptracker     1
 #+END_SRC
-
 **** Using TapTracker data
 ***** In C
 ****** Memory Struct
@@ -152,4 +153,3 @@ if (close(fd) != 0)
   if __name__ == '__main__':
       main()
 #+END_SRC
-

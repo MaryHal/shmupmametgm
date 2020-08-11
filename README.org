@@ -31,7 +31,7 @@ If you don't want to go through the trouble of building this by yourself (and yo
 
 ** Tetromino Logger
 *** Fumenizer
-This version of shmupmametgm has been modified so that it can output piece placement data to a text file when a game of tgm2p is completed. You can then paste the file's contents [[http://rawgit.com/sanford1/shmupmametgm/master/fumen_encode.html][here]] (fumen_encode.html) to generate a [[http://fumen.zui.jp/][fumen]] diagram of the game. For now, this only works for player 1 in tgm2p.
+This version of shmupmametgm has been modified so that it can output piece placement data to a text file when a game of tgm2p is completed. You can then paste the file's contents [[https://maryhal.github.io/shmupmametgm/][here]] (fumen_encode.html) to generate a [[http://fumen.zui.jp/][fumen]] diagram of the game. For now, this only works for player 1 in tgm2p.
 **** Enabling fumenizer
 To enable this functionality, you must either run shmupmametgm with the =-fumen= switch like so:
 
@@ -46,7 +46,7 @@ Or enable it in your =mame.ini= file:
 fumen          1
 #+END_SRC
 *** TapTracker
-If you're using *nix, this version of shmupmametgm can also write tgm2p data to a memory mapped file at =/dev/shm/taptracker_data=. With this, other processes can read constantly updated data from tgm2p in MAME for logging purposes, or whatever you can think of! I've written a level graph, section data viewer, and button viewer that you can run alongside shmupmametgm [[https://github.com/sanford1/TapTracker][here]] (also called TapTracker). On Windows, this file is located at =%APPDATA%\taptracker_data=.
+If you're using *nix, this version of shmupmametgm can also write tgm2p data to a memory mapped file at =/dev/shm/taptracker_data=. With this, other processes can read constantly updated data from tgm2p in MAME for logging purposes, or whatever you can think of! I've written a level graph, section data viewer, and button viewer that you can run alongside shmupmametgm [[https://github.com/MaryHal/TapTracker][here]] (also called TapTracker). On Windows, this file is located at =%APPDATA%\taptracker_data=.
 **** Enabling taptracker
 Similar to fumenizer, you can activate this functionality for tgm2p with the =-taptracker= switch:
 

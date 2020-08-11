@@ -212,7 +212,6 @@ function encode()
     {
         var line = fumenData[i];
 
-        // Check if line is empty.
         if (line.length === 0 || !line.trim())
         {
             console.log("skip");
@@ -254,7 +253,7 @@ function encode()
             processframe(0, 0);
             frame++;
 
-            // Reset the field in master mode.
+            // The field gets reset when you enter the credits roll for Master mode
             if (mode === "Master")
             {
                 for(e=0;e<fldblks;e++) f[e]=0;
@@ -269,7 +268,6 @@ function encode()
 
         var comment = "";
 
-        // First frame, add mode name to comment.
         if (frame === 0)
         {
             comment += mode + ' ';

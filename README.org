@@ -37,19 +37,19 @@ Add "PTR64=1" to the make line.
 I recently built this project inside a Debian VM. There were a few more hazards than I expected. The commands listed here are for Debian 10.6. The package manager and package names may be different for you.
 ***** pkg-config
 #+BEGIN_SRC bash
-$ apt install pkg-config
+# apt install pkg-config
 #+END_SRC
 ***** SDL1.2
 #+BEGIN_SRC bash
-$ apt install libsdl1.2-dev
+# apt install libsdl1.2-dev
 #+END_SRC
 ***** gtk+2.0
 #+BEGIN_SRC bash
-$ apt install gtk+2.0
+# apt install gtk+2.0
 #+END_SRC
 ***** gconf
 #+BEGIN_SRC bash
-$ apt install gconf2-common
+# apt install gconf2-common
 #+END_SRC
 ** Download
 If you don't want to go through the trouble of building this by yourself (and you trust me enough): [[https://github.com/MaryHal/shmupmametgm/releases/latest][Latest Release]]

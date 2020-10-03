@@ -552,7 +552,7 @@ VERSIONOBJ = $(OBJ)/version.o
 LIBS =
 
 ifneq ($(TARGETOS),win32)
-LIBS += -lrt
+LIBS += -lrt -lpthread
 endif
 
 # add expat XML library

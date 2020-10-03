@@ -1,6 +1,12 @@
 * shmupmametgm :TOC_5_gh:
   - [[#building][Building]]
     - [[#troubleshooting][Troubleshooting]]
+      - [[#compiling-for-64-bit-targets][Compiling for 64-bit targets]]
+      - [[#missing-dependencies][Missing dependencies]]
+        - [[#pkg-config][pkg-config]]
+        - [[#sdl12][SDL1.2]]
+        - [[#gtk20][gtk+2.0]]
+        - [[#gconf][gconf]]
   - [[#download][Download]]
   - [[#tetromino-logger][Tetromino Logger]]
     - [[#fumenizer][Fumenizer]]
@@ -17,6 +23,7 @@ make SUBTARGET=tgm NOWERROR=1
 #+END_SRC
 
 *** Troubleshooting
+**** Compiling for 64-bit targets
 If you see errors like this:
 
 #+BEGIN_SRC text
@@ -26,6 +33,24 @@ src/osd/windows/winwork.c:205:17: warning: cast to pointer from integer of diffe
 #+END_SRC
 
 Add "PTR64=1" to the make line.
+**** Missing dependencies
+I recently built this project inside a Debian VM. There were a few more hazards than I expected. The commands listed here are for Debian 10.6. The package manager and package names may be different for you.
+***** pkg-config
+#+BEGIN_SRC bash
+$ apt install pkg-config
+#+END_SRC
+***** SDL1.2
+#+BEGIN_SRC bash
+$ apt install libsdl1.2-dev
+#+END_SRC
+***** gtk+2.0
+#+BEGIN_SRC bash
+$ apt install gtk+2.0
+#+END_SRC
+***** gconf
+#+BEGIN_SRC bash
+$ apt install gconf2-common
+#+END_SRC
 ** Download
 If you don't want to go through the trouble of building this by yourself (and you trust me enough): [[https://github.com/MaryHal/shmupmametgm/releases/latest][Latest Release]]
 
